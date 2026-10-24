@@ -4,6 +4,9 @@ import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
 import { InstitutionManagement } from './components/InstitutionManagement';
 import { FdrRepository } from './components/FdrRepository';
+import { DocumentUploadOcr } from './components/DocumentUploadOcr';
+import { RenewalsMaturityPage } from './components/RenewalsMaturityPage';
+import { ReleaseRequestsView } from './components/ReleaseRequestsView';
 import { PlaceholderView } from './components/PlaceholderView';
 import { RecordDetailsModal } from './components/RecordDetailsModal';
 import { ActionModal } from './components/ActionModal';
@@ -69,7 +72,10 @@ export function App() {
   }, [loadDatabaseData]);
 
   const handleActionTrigger = (actionName, record) => {
-    showToast(`Simulation: ${actionName} dispatched for ${record.institutionCode} (${record.reference})`);
+    if (actionName === 'Workflow Updated') {
+      loadDatabaseData(false);
+      showToast(`Lifecycle workflow state updated for ${record.reference}.`);
+    }
   };
 
   // Quick Actions Router
@@ -77,9 +83,13 @@ export function App() {
     if (act.id === 'register' || act.targetNav === 'Institutions') {
       setActiveNav('Institutions');
       setOpenInstitutionAdd(true);
-    } else if (act.id === 'upload' || act.targetNav === 'FDR Repository') {
+    } else if (act.id === 'upload') {
       setActiveNav('FDR Repository');
       setOpenFdrAdd(true);
+    } else if (act.id === 'verify' || act.targetNav === 'AI Verification') {
+      setActiveNav('AI Verification');
+    } else if (act.id === 'release' || act.targetNav === 'Release Requests') {
+      setActiveNav('Release Requests');
     } else {
       setActiveActionModal(act);
     }
@@ -273,6 +283,8 @@ export function App() {
             setOpenInstitutionAdd(false);
             setOpenFdrAdd(false);
           }}
+          fdrRecords={fdrRecords}
+          institutions={institutions}
         />
 
         {/* Scrollable Main View */}
@@ -330,6 +342,7 @@ export function App() {
               onViewFdrDetails={(rec) => setSelectedRecord(rec)}
               onOpenAddModal={openInstitutionAdd}
               onCloseAddModal={() => setOpenInstitutionAdd(false)}
+              externalSearchTerm={globalSearchTerm}
             />
           )}
 
@@ -343,10 +356,50 @@ export function App() {
               onViewDetails={(rec) => setSelectedRecord(rec)}
               onOpenAddModal={openFdrAdd}
               onCloseAddModal={() => setOpenFdrAdd(false)}
+              onNavigateToOcr={() => setActiveNav("AI Verification")}
+              externalSearchTerm={globalSearchTerm}
             />
           )}
 
-          {activeNav !== "Overview" && activeNav !== "Institutions" && activeNav !== "FDR Repository" && (
+          {activeNav === "AI Verification" && (
+            <DocumentUploadOcr
+              institutions={institutions}
+              fdrRecords={fdrRecords}
+              onFdrCreated={(newRecord) => {
+                setFdrRecords(prev => [newRecord, ...prev]);
+                showToast(`FDR "${newRecord.reference}" vaulted successfully from OCR intake.`);
+              }}
+              onFdrUpdated={(updatedRecord) => {
+                setFdrRecords(prev => prev.map(r => r.id === updatedRecord.id ? updatedRecord : r));
+                showToast(`FDR "${updatedRecord.reference}" updated with linked document scan.`);
+              }}
+              onNavigateToRepository={() => setActiveNav("FDR Repository")}
+            />
+          )}
+
+          {activeNav === "Renewals & Maturity" && (
+            <RenewalsMaturityPage
+              records={fdrRecords}
+              onViewDetails={(rec) => setSelectedRecord(rec)}
+              onNavigateToRepository={() => setActiveNav("FDR Repository")}
+            />
+          )}
+
+          {activeNav === "Release Requests" && (
+            <ReleaseRequestsView
+              fdrRecords={fdrRecords}
+              institutions={institutions}
+              onViewDetails={(rec) => setSelectedRecord(rec)}
+              onWorkflowUpdated={() => loadDatabaseData(false)}
+            />
+          )}
+
+          {activeNav !== "Overview" && 
+           activeNav !== "Institutions" && 
+           activeNav !== "FDR Repository" && 
+           activeNav !== "AI Verification" && 
+           activeNav !== "Renewals & Maturity" && 
+           activeNav !== "Release Requests" && (
             <PlaceholderView
               viewName={activeNav}
               onReturnToOverview={() => setActiveNav("Overview")}

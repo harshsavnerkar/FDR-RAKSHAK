@@ -6,7 +6,15 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.config import CORS_ORIGINS, ENVIRONMENT
 from app.database import engine, Base, get_db
-from app.routers import institutions_router, fdrs_router, dashboard_router
+from app.routers import (
+    institutions_router,
+    fdrs_router,
+    dashboard_router,
+    documents_router,
+    compliance_router,
+    risk_router,
+    workflows_router
+)
 from app.services.seed_data import seed_database
 
 # Configure structured logging
@@ -24,6 +32,10 @@ async def lifespan(app: FastAPI):
         # Create database tables if they do not exist
         Base.metadata.create_all(bind=engine)
         logger.info("Database schemas verified successfully.")
+
+        # Ensure lifecycle_status column exists in fdrs table
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE fdrs ADD COLUMN IF NOT EXISTS lifecycle_status VARCHAR(50) DEFAULT 'ACTIVE' NOT NULL;"))
 
         # Seed initial sample data if empty
         with engine.begin() as conn:
@@ -64,6 +76,10 @@ app.add_middleware(
 app.include_router(institutions_router)
 app.include_router(fdrs_router)
 app.include_router(dashboard_router)
+app.include_router(documents_router)
+app.include_router(compliance_router)
+app.include_router(risk_router)
+app.include_router(workflows_router)
 
 @app.get("/api/health", tags=["Health"])
 def health_check(db: Session = Depends(get_db)):

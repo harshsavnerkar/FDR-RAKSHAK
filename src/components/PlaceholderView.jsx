@@ -85,19 +85,6 @@ export function PlaceholderView({ viewName, onReturnToOverview, onOpenActionModa
           ],
           primaryAction: "Initiate Release Verification",
         };
-      case "Reports & Analytics":
-        return {
-          icon: BarChart3,
-          tagline: "Regulatory Intelligence & Fiscal Audits",
-          description:
-            "Comprehensive state-wise, bank-wise, and institution-tier breakdowns of security deposit compliance.",
-          stats: [
-            { label: "Generated Quarterly Reports", value: "12" },
-            { label: "Compliance Index", value: "94.6%" },
-            { label: "Scheduled Audit Export", value: "Weekly" },
-          ],
-          primaryAction: "Generate Custom Audit Report",
-        };
       case "Audit Trail":
         return {
           icon: History,
@@ -105,11 +92,24 @@ export function PlaceholderView({ viewName, onReturnToOverview, onOpenActionModa
           description:
             "Immutable audit trail logging every administrative review, OCR scan, bank verification ping, and status update with SHA-256 fingerprinting.",
           stats: [
-            { label: "Total Ledger Transactions", value: "14,920" },
+            { label: "PostgreSQL Database", value: "Port 8001" },
             { label: "Integrity Verification", value: "VERIFIED" },
-            { label: "Sync Latency", value: "< 24ms" },
+            { label: "Security Engine", value: "ACTIVE" },
           ],
           primaryAction: "Export Signed Audit Ledger",
+        };
+      case "Reports & Analytics":
+        return {
+          icon: BarChart3,
+          tagline: "Regulatory Intelligence & Fiscal Audits",
+          description:
+            "Comprehensive state-wise, bank-wise, and institution-tier breakdowns of security deposit compliance.",
+          stats: [
+            { label: "Vaulted Corpus", value: "₹4.85 Cr" },
+            { label: "Institutions Monitored", value: "10" },
+            { label: "Audit Schedule", value: "Quarterly" },
+          ],
+          primaryAction: "Generate Custom Audit Report",
         };
       case "Settings":
       default:

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   Search,
   Bell,
@@ -13,8 +13,13 @@ import {
   ExternalLink,
   LogOut,
   HelpCircle,
-  FileText
+  FileText,
+  RefreshCw,
+  Building,
+  FolderArchive
 } from 'lucide-react';
+import { api } from '../services/api';
+import { formatDate } from '../data/sampleFdrData';
 
 export function Header({
   activeNav,
@@ -22,12 +27,86 @@ export function Header({
   onSearchChange,
   onToggleSidebar,
   sidebarCollapsed,
-  onSelectNav
+  onSelectNav,
+  fdrRecords = [],
+  institutions = [],
+  onSelectFdr
 }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const notifRef = useRef(null);
   const profileRef = useRef(null);
+
+  // Dynamic alerts loaded from real backend risk/compliance API
+  const [alerts, setAlerts] = useState([]);
+  const [alertsLoading, setAlertsLoading] = useState(false);
+  const [alertsError, setAlertsError] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadAlerts() {
+      setAlertsLoading(true);
+      setAlertsError(null);
+      try {
+        const data = await api.getRiskSummary();
+        if (!mounted) return;
+        if (data && Array.isArray(data.prioritizedQueue)) {
+          const urgentItems = data.prioritizedQueue
+            .filter(item => 
+              item.priority === 'CRITICAL' || 
+              item.priority === 'HIGH' || 
+              item.maturityCategory === 'MATURING_30_DAYS' || 
+              item.maturityCategory === 'EXPIRED'
+            )
+            .map((item, idx) => ({
+              id: item.fdrId || `alert-${idx}`,
+              title: item.priority === 'CRITICAL' 
+                ? `Critical Risk: ${item.institutionCode}` 
+                : `Maturity Milestone: ${item.institutionCode}`,
+              desc: `${item.reference} (${item.bankName}) — ${item.topReason || item.maturityCategory}`,
+              time: item.daysRemaining !== null 
+                ? (item.daysRemaining < 0 ? `${Math.abs(item.daysRemaining)}d overdue` : `${item.daysRemaining}d remaining`) 
+                : 'Action required',
+              type: item.priority === 'CRITICAL' ? 'critical' : 'warning',
+              fdrId: item.fdrId,
+              reference: item.reference
+            }));
+          setAlerts(urgentItems);
+        }
+      } catch (err) {
+        if (!mounted) return;
+        console.warn('Dynamic alerts fetch error (graceful fallback):', err);
+        setAlertsError('Alerts API unavailable');
+      } finally {
+        if (mounted) setAlertsLoading(false);
+      }
+    }
+    loadAlerts();
+    return () => { mounted = false; };
+  }, [fdrRecords]);
+
+  // Global search cross-entity match statistics
+  const searchMatches = useMemo(() => {
+    if (!searchTerm || !searchTerm.trim()) return null;
+    const q = searchTerm.trim().toLowerCase();
+    const matchingFdrs = fdrRecords.filter(f =>
+      f.reference?.toLowerCase().includes(q) ||
+      f.institution?.toLowerCase().includes(q) ||
+      f.bankName?.toLowerCase().includes(q) ||
+      f.certificateNo?.toLowerCase().includes(q)
+    );
+    const matchingInsts = institutions.filter(i =>
+      i.name?.toLowerCase().includes(q) ||
+      i.code?.toLowerCase().includes(q) ||
+      i.state?.toLowerCase().includes(q) ||
+      i.city?.toLowerCase().includes(q)
+    );
+    return {
+      fdrs: matchingFdrs,
+      institutions: matchingInsts,
+      total: matchingFdrs.length + matchingInsts.length
+    };
+  }, [searchTerm, fdrRecords, institutions]);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -42,30 +121,6 @@ export function Header({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const notifications = [
-    {
-      id: 1,
-      title: "Critical Overdue FDR Detected",
-      desc: "VCET Puttur (Canara Bank) maturity lapsed on 12-Oct-2026 without rollover.",
-      time: "14m ago",
-      type: "critical"
-    },
-    {
-      id: 2,
-      title: "Maturity Warning (23 Days)",
-      desc: "SPIT Mumbai FDR-2024-9102 expiring on 15-Nov-2026. Action required.",
-      time: "48m ago",
-      type: "warning"
-    },
-    {
-      id: 3,
-      title: "AI OCR Validation Passed",
-      desc: "DITE Delhi (PNB 1.00 Cr deposit) 100% matched with CBS records.",
-      time: "2h ago",
-      type: "success"
-    }
-  ];
 
   return (
     <header className="sticky top-0 z-30 bg-chassis/95 backdrop-blur-md border-b border-[#d1d9e6]/80 px-4 sm:px-6 py-3.5 transition-all">
@@ -112,13 +167,19 @@ export function Header({
               type="text"
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search by FDR reference, institution, or bank..."
-              className="w-full pl-9 pr-14 py-2 text-xs font-mono skeuo-input placeholder:text-text-muted/60"
+              placeholder="Search across FDRs, institutions, PIDs, or banks..."
+              className="w-full pl-9 pr-24 py-2 text-xs font-mono skeuo-input placeholder:text-text-muted/60"
             />
-            <div className="absolute inset-y-0 right-0 pr-2 flex items-center">
-              <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-panel text-text-muted border border-recessed rounded shadow-[inset_1px_1px_2px_#ffffff]">
-                /
-              </kbd>
+            <div className="absolute inset-y-0 right-0 pr-2 flex items-center gap-1.5 pointer-events-none">
+              {searchMatches ? (
+                <span className="px-1.5 py-0.5 text-[10px] font-mono bg-[#1b7943]/15 text-[#1b7943] border border-[#b7ebcd] rounded">
+                  {searchMatches.fdrs.length} FDR &bull; {searchMatches.institutions.length} Inst
+                </span>
+              ) : (
+                <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-panel text-text-muted border border-recessed rounded shadow-[inset_1px_1px_2px_#ffffff]">
+                  /
+                </kbd>
+              )}
             </div>
           </div>
         </div>
@@ -143,68 +204,102 @@ export function Header({
               }`}
             >
               <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-accent text-white font-mono text-[10px] font-bold flex items-center justify-center shadow-md border border-white">
-                3
-              </span>
+              {alerts.length > 0 ? (
+                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-accent text-white font-mono text-[10px] font-bold flex items-center justify-center shadow-md border border-white">
+                  {alerts.length}
+                </span>
+              ) : (
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[#1b7943] border border-white" />
+              )}
             </button>
 
             {/* Notification Dropdown Panel */}
             {showNotifications && (
-              <div className="absolute right-0 mt-3 w-80 sm:w-96 skeuo-panel-elevated p-4 z-50 animate-in fade-in slide-in-from-top-2">
+              <div className="absolute right-0 mt-3 w-80 sm:w-96 skeuo-panel-elevated p-4 z-50 animate-in fade-in slide-in-from-top-2 shadow-skeuo-modal border border-[#d1d9e6]">
                 <div className="flex items-center justify-between pb-3 border-b border-[#d1d9e6]">
                   <div className="flex items-center gap-2">
                     <span className="screw-head" />
                     <h3 className="font-bold text-sm text-text-primary">Administrative Alerts</h3>
                   </div>
-                  <span className="text-[11px] font-mono font-semibold text-accent px-2 py-0.5 rounded bg-accent/10 border border-accent/20">
-                    3 Action Items
+                  <span className={`text-[11px] font-mono font-semibold px-2 py-0.5 rounded ${
+                    alerts.length > 0 
+                      ? 'bg-accent/10 text-accent border border-accent/20' 
+                      : 'bg-[#1b7943]/10 text-[#1b7943] border border-[#1b7943]/20'
+                  }`}>
+                    {alertsLoading ? 'Updating...' : `${alerts.length} Action Items`}
                   </span>
                 </div>
 
-                <div className="mt-3 space-y-2.5 max-h-80 overflow-y-auto pr-1">
-                  {notifications.map((item) => (
-                    <div
-                      key={item.id}
-                      className="p-3 rounded-lg skeuo-recessed-shallow border border-recessed hover:bg-panel transition-colors"
-                    >
-                      <div className="flex items-start gap-2.5">
-                        {item.type === "critical" && (
-                          <AlertTriangle className="w-4 h-4 text-[#d63031] flex-shrink-0 mt-0.5" />
-                        )}
-                        {item.type === "warning" && (
-                          <Clock className="w-4 h-4 text-[#e65100] flex-shrink-0 mt-0.5" />
-                        )}
-                        {item.type === "success" && (
-                          <CheckCircle2 className="w-4 h-4 text-[#1b7943] flex-shrink-0 mt-0.5" />
-                        )}
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-text-primary">
-                              {item.title}
-                            </span>
-                            <span className="text-[10px] font-mono text-text-muted">
-                              {item.time}
-                            </span>
+                {alertsLoading && (
+                  <div className="p-6 text-center text-xs font-mono text-text-muted">
+                    <RefreshCw className="w-4 h-4 mx-auto mb-1 animate-spin text-accent-orange" />
+                    <span>Syncing regulatory alerts with database...</span>
+                  </div>
+                )}
+
+                {alertsError && (
+                  <div className="mt-3 p-3 rounded-lg bg-[#fff8e6] border border-[#ffd166] text-[#b36b00] text-xs font-mono">
+                    <p className="font-bold">Offline Telemetry Mode</p>
+                    <p className="text-[11px] mt-0.5">{alertsError}. Displaying vault baseline.</p>
+                  </div>
+                )}
+
+                {!alertsLoading && alerts.length === 0 && !alertsError && (
+                  <div className="p-6 text-center text-xs font-mono text-text-muted space-y-1">
+                    <CheckCircle2 className="w-6 h-6 mx-auto text-[#1b7943]" />
+                    <p className="font-bold text-text-primary">All Instruments Compliant</p>
+                    <p className="text-[11px]">No critical risk or overdue alerts detected in PostgreSQL vault.</p>
+                  </div>
+                )}
+
+                {!alertsLoading && alerts.length > 0 && (
+                  <div className="mt-3 space-y-2.5 max-h-80 overflow-y-auto pr-1">
+                    {alerts.map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => {
+                          setShowNotifications(false);
+                          if (onSelectNav) onSelectNav("Renewals & Maturity");
+                        }}
+                        className="p-3 rounded-lg skeuo-recessed-shallow border border-recessed hover:bg-panel transition-colors cursor-pointer"
+                        title="Click to view in Risk & Maturity radar"
+                      >
+                        <div className="flex items-start gap-2.5">
+                          {item.type === "critical" && (
+                            <AlertTriangle className="w-4 h-4 text-[#d63031] flex-shrink-0 mt-0.5" />
+                          )}
+                          {item.type === "warning" && (
+                            <Clock className="w-4 h-4 text-[#e65100] flex-shrink-0 mt-0.5" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-semibold text-text-primary truncate">
+                                {item.title}
+                              </span>
+                              <span className="text-[10px] font-mono text-accent-orange font-bold flex-shrink-0 ml-1">
+                                {item.time}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-xs text-text-muted leading-relaxed font-sans">
+                              {item.desc}
+                            </p>
                           </div>
-                          <p className="mt-1 text-xs text-text-muted leading-relaxed">
-                            {item.desc}
-                          </p>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
 
                 <div className="mt-3 pt-2 border-t border-[#d1d9e6] flex items-center justify-between text-xs font-mono">
                   <span className="text-text-muted">AICTE Regulation Bureau Alerts</span>
                   <button
                     onClick={() => {
                       setShowNotifications(false);
-                      onSelectNav("Audit Trail");
+                      onSelectNav("Renewals & Maturity");
                     }}
                     className="text-accent-orange font-semibold hover:underline"
                   >
-                    View All Logs &rarr;
+                    Open Action Queue &rarr;
                   </button>
                 </div>
               </div>

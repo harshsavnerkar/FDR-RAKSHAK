@@ -104,6 +104,126 @@ export const api = {
   getStatusDistribution: () => request('/dashboard/status-distribution'),
   getUpcomingMaturities: () => request('/dashboard/upcoming-maturities'),
 
+  // FDR Document Upload & OCR
+  getDocumentOcrStatus: () => request('/documents/status'),
+
+  uploadDocument: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const url = `${API_BASE_URL}/documents/upload`;
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        body: formData
+      });
+
+      const isJson = res.headers.get('content-type')?.includes('application/json');
+      const data = isJson ? await res.json() : await res.text();
+
+      if (!res.ok) {
+        const errorMsg = data?.detail || data?.message || (typeof data === 'string' ? data : `Upload error (HTTP ${res.status})`);
+        const err = new Error(errorMsg);
+        err.status = res.status;
+        err.data = data;
+        throw err;
+      }
+
+      return data;
+    } catch (error) {
+      if (error.status) throw error;
+      const netErr = new Error(`Cannot connect to upload endpoint at ${url}. Verify backend server is running.`);
+      netErr.isNetworkError = true;
+      throw netErr;
+    }
+  },
+
+  linkDocumentToFdr: (documentId, payload) => request(`/documents/${encodeURIComponent(documentId)}/link`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  }),
+
+  getDocumentPreviewUrl: (documentId) => `${API_BASE_URL}/documents/${encodeURIComponent(documentId)}/preview`,
+
+  // Compliance & Discrepancy Engine (Step 5)
+  getComplianceSummary: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.approachingMaturityDays) query.append('approaching_maturity_days', params.approachingMaturityDays);
+    if (params.amountTolerance) query.append('amount_tolerance', params.amountTolerance);
+    if (params.ocrConfidenceThreshold) query.append('ocr_confidence_threshold', params.ocrConfidenceThreshold);
+    if (params.asOf) query.append('as_of', params.asOf);
+    const qs = query.toString();
+    return request(`/compliance/summary${qs ? `?${qs}` : ''}`);
+  },
+
+  getFdrComplianceReport: (fdrId, params = {}) => {
+    const query = new URLSearchParams();
+    if (params.approachingMaturityDays) query.append('approaching_maturity_days', params.approachingMaturityDays);
+    if (params.amountTolerance) query.append('amount_tolerance', params.amountTolerance);
+    if (params.ocrConfidenceThreshold) query.append('ocr_confidence_threshold', params.ocrConfidenceThreshold);
+    if (params.asOf) query.append('as_of', params.asOf);
+    const qs = query.toString();
+    return request(`/compliance/fdr/${encodeURIComponent(fdrId)}${qs ? `?${qs}` : ''}`);
+  },
+
+  evaluateCustomCompliance: (payload) => request('/compliance/evaluate-custom', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  }),
+
+  // Maturity Tracking & Risk Prioritization (Step 6)
+  getRiskSummary: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.asOf) query.append('as_of', params.asOf);
+    if (params.priority) query.append('priority', params.priority);
+    if (params.maturity) query.append('maturity', params.maturity);
+    if (params.compliance) query.append('compliance', params.compliance);
+    const qs = query.toString();
+    return request(`/risk/summary${qs ? `?${qs}` : ''}`);
+  },
+
+  getPrioritizedFdrs: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.asOf) query.append('as_of', params.asOf);
+    if (params.priority) query.append('priority', params.priority);
+    if (params.maturity) query.append('maturity', params.maturity);
+    if (params.compliance) query.append('compliance', params.compliance);
+    const qs = query.toString();
+    return request(`/risk/prioritized${qs ? `?${qs}` : ''}`);
+  },
+
+  getFdrRiskAssessment: (fdrId, params = {}) => {
+    const query = new URLSearchParams();
+    if (params.asOf) query.append('as_of', params.asOf);
+    const qs = query.toString();
+    return request(`/risk/fdr/${encodeURIComponent(fdrId)}${qs ? `?${qs}` : ''}`);
+  },
+
+  // Lifecycle & Controlled Workflows (Step 7)
+  getWorkflowSummary: () => request('/workflows/summary'),
+
+  getFdrLifecycleOverview: (fdrId) => request(`/workflows/fdr/${encodeURIComponent(fdrId)}`),
+
+  initiateRenewal: (fdrId, payload) => request(`/workflows/fdr/${encodeURIComponent(fdrId)}/renew`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  }),
+
+  initiateReplacement: (fdrId, payload) => request(`/workflows/fdr/${encodeURIComponent(fdrId)}/replace`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  }),
+
+  initiateRelease: (fdrId, payload) => request(`/workflows/fdr/${encodeURIComponent(fdrId)}/release`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  }),
+
+  decideWorkflow: (workflowId, payload) => request(`/workflows/${encodeURIComponent(workflowId)}/decide`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  }),
+
   // Seed
   seedDatabase: () => request('/seed', { method: 'POST' })
 };

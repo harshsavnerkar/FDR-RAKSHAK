@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   X,
   Building,
@@ -12,12 +12,23 @@ import {
   Lock,
   CheckCircle,
   Clock,
-  Sparkles
+  Sparkles,
+  ShieldAlert,
+  Scale,
+  RotateCcw
 } from 'lucide-react';
-import { StatusBadge, PriorityBadge } from './StatusBadge';
+import { StatusBadge, PriorityBadge, LifecycleBadge } from './StatusBadge';
 import { formatINR, formatDate } from '../data/sampleFdrData';
+import { ComplianceAuditView } from './ComplianceAuditView';
+import { RiskMaturityView } from './RiskMaturityView';
+import { LifecycleWorkflowView } from './LifecycleWorkflowView';
+import { CustodySlipPrintModal } from './CustodySlipPrintModal';
 
 export function RecordDetailsModal({ record, onClose, onActionTrigger }) {
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'compliance' | 'risk' | 'lifecycle'
+  const [showPrintSlip, setShowPrintSlip] = useState(false);
+  const [lifecycleInitialForm, setLifecycleInitialForm] = useState(null);
+
   if (!record) return null;
 
   return (
@@ -69,24 +80,92 @@ export function RecordDetailsModal({ record, onClose, onActionTrigger }) {
             </div>
           </div>
 
-          {/* Status & Priority Bar */}
-          <div className="mt-4 flex flex-wrap items-center gap-2.5">
-            <StatusBadge status={record.verificationStatus} />
-            <PriorityBadge priority={record.priority} />
-            <span className="text-xs font-mono px-2 py-0.5 rounded bg-panel border border-[#babecc] text-text-muted">
-              Region: <strong>{record.region}</strong>
-            </span>
-            <span className="text-xs font-mono px-2 py-0.5 rounded bg-panel border border-[#babecc] text-text-muted">
-              Category: <strong>{record.category}</strong>
-            </span>
+          {/* Status & Priority Bar + Tab Switcher */}
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <StatusBadge status={record.verificationStatus} />
+              <PriorityBadge priority={record.priority} />
+              <LifecycleBadge status={record.lifecycleStatus || 'ACTIVE'} />
+              <span className="text-xs font-mono px-2 py-0.5 rounded bg-panel border border-[#babecc] text-text-muted">
+                Region: <strong>{record.region}</strong>
+              </span>
+              <span className="text-xs font-mono px-2 py-0.5 rounded bg-panel border border-[#babecc] text-text-muted">
+                Category: <strong>{record.category}</strong>
+              </span>
+            </div>
+
+            {/* Navigation Tabs */}
+            <div className="flex items-center gap-1.5 p-1 rounded-xl skeuo-recessed border border-[#d1d9e6]">
+              <button
+                type="button"
+                onClick={() => setActiveTab('overview')}
+                className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all ${
+                  activeTab === 'overview'
+                    ? 'bg-chassis text-accent-orange shadow-md border border-[#d1d9e6]'
+                    : 'text-text-muted hover:text-text-primary'
+                }`}
+              >
+                Overview Dossier
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('compliance')}
+                className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+                  activeTab === 'compliance'
+                    ? 'bg-chassis text-accent-cyan shadow-md border border-[#d1d9e6]'
+                    : 'text-text-muted hover:text-text-primary'
+                }`}
+              >
+                <Scale className="w-3.5 h-3.5 text-accent-cyan" />
+                <span>Compliance</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('risk')}
+                className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+                  activeTab === 'risk'
+                    ? 'bg-chassis text-[#cf1322] shadow-md border border-[#d1d9e6]'
+                    : 'text-text-muted hover:text-text-primary'
+                }`}
+              >
+                <ShieldAlert className="w-3.5 h-3.5 text-[#cf1322]" />
+                <span>Risk & Maturity</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('lifecycle')}
+                className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 ${
+                  activeTab === 'lifecycle'
+                    ? 'bg-chassis text-[#1b7943] shadow-md border border-[#d1d9e6]'
+                    : 'text-text-muted hover:text-text-primary'
+                }`}
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-[#1b7943]" />
+                <span>Lifecycle Workflows</span>
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Modal Body */}
         <div className="p-6 space-y-6 max-h-[calc(85vh-160px)] overflow-y-auto">
-          
-          {/* Main Deposit Highlights Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {activeTab === 'compliance' ? (
+            <ComplianceAuditView fdrId={record.id} />
+          ) : activeTab === 'risk' ? (
+            <RiskMaturityView fdrId={record.id} />
+          ) : activeTab === 'lifecycle' ? (
+            <LifecycleWorkflowView
+              fdrId={record.id}
+              initialFormType={lifecycleInitialForm}
+              onWorkflowUpdated={() => {
+                setLifecycleInitialForm(null);
+                if (onActionTrigger) onActionTrigger('Workflow Updated', record);
+              }}
+            />
+          ) : (
+            <>
+              {/* Main Deposit Highlights Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="p-3.5 rounded-xl skeuo-recessed">
               <span className="text-[11px] font-mono text-text-muted uppercase">Security Deposit Amount</span>
               <div className="text-2xl font-bold font-mono text-text-primary mt-1">
@@ -198,8 +277,10 @@ export function RecordDetailsModal({ record, onClose, onActionTrigger }) {
               </div>
             </div>
           </div>
+        </>
+      )}
 
-        </div>
+    </div>
 
         {/* Modal Footer / Physical Action Buttons */}
         <div className="px-6 py-4 bg-[#e8edf4] border-t border-[#d1d9e6] flex flex-wrap items-center justify-between gap-3">
@@ -210,16 +291,21 @@ export function RecordDetailsModal({ record, onClose, onActionTrigger }) {
 
           <div className="flex items-center gap-2.5">
             <button
-              onClick={() => onActionTrigger("Print Custody Slip", record)}
+              onClick={() => setShowPrintSlip(true)}
               className="skeuo-btn px-3.5 py-2 text-xs font-mono rounded-lg flex items-center gap-1.5"
+              title="Print official safe custody slip"
             >
               <Printer className="w-4 h-4 text-text-muted" />
               <span>Print Slip</span>
             </button>
 
             <button
-              onClick={() => onActionTrigger("Issue Renewal Notice", record)}
+              onClick={() => {
+                setLifecycleInitialForm('RENEWAL');
+                setActiveTab('lifecycle');
+              }}
               className="skeuo-btn px-3.5 py-2 text-xs font-mono rounded-lg flex items-center gap-1.5 text-accent-orange"
+              title="Initiate administrative renewal workflow"
             >
               <Send className="w-4 h-4" />
               <span>Issue Notice</span>
@@ -235,6 +321,14 @@ export function RecordDetailsModal({ record, onClose, onActionTrigger }) {
         </div>
 
       </div>
+
+      {/* Official Printable Custody Slip Modal */}
+      {showPrintSlip && (
+        <CustodySlipPrintModal
+          record={record}
+          onClose={() => setShowPrintSlip(false)}
+        />
+      )}
     </div>
   );
 }

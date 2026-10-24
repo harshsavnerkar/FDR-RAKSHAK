@@ -46,3 +46,17 @@ CORS_ORIGINS = [origin.strip() for origin in CORS_ORIGINS_RAW.split(",") if orig
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8001"))
+
+# Upload Storage & Security Configuration
+BACKEND_ROOT = Path(__file__).resolve().parent.parent
+UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", BACKEND_ROOT / "uploads"))
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+MAX_UPLOAD_SIZE_BYTES = int(os.getenv("MAX_UPLOAD_SIZE_BYTES", 10 * 1024 * 1024))  # 10 MB limit
+ALLOWED_UPLOAD_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg"}
+ALLOWED_MIME_TYPES = {
+    "application/pdf",
+    "image/png",
+    "image/jpeg",
+    "image/pjpeg"
+}

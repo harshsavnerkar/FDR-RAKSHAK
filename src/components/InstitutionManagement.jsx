@@ -36,13 +36,21 @@ export function InstitutionManagement({
   onDeleteInstitution,
   onViewFdrDetails,
   onOpenAddModal = false,
-  onCloseAddModal
+  onCloseAddModal,
+  externalSearchTerm = ''
 }) {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(externalSearchTerm || '');
   const [selectedState, setSelectedState] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
+
+  // Sync external search term from Header
+  React.useEffect(() => {
+    if (externalSearchTerm !== undefined) {
+      setSearchTerm(externalSearchTerm);
+    }
+  }, [externalSearchTerm]);
 
   // Modals state
   const [showRegisterModal, setShowRegisterModal] = useState(onOpenAddModal);

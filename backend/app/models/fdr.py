@@ -30,6 +30,7 @@ class FDR(Base):
 
     verification_status: Mapped[str] = mapped_column(String(50), default="Pending", nullable=False, index=True)
     priority: Mapped[str] = mapped_column(String(50), default="Standard", nullable=False, index=True)
+    lifecycle_status: Mapped[str] = mapped_column(String(50), default="ACTIVE", server_default="ACTIVE", nullable=False, index=True)
 
     joint_lien_holder: Mapped[str | None] = mapped_column(String(255), nullable=True)
     lien_status: Mapped[str | None] = mapped_column(String(100), default="Lien Marked to AICTE New Delhi", nullable=True)
@@ -44,6 +45,9 @@ class FDR(Base):
 
     # Relationship to Institution
     institution = relationship("Institution", back_populates="fdrs")
+
+    # Relationship to Workflows
+    workflows = relationship("FDRWorkflow", back_populates="fdr", cascade="all, delete-orphan", order_by="desc(FDRWorkflow.created_at)")
 
     __table_args__ = (
         CheckConstraint("deposit_amount > 0", name="check_positive_deposit_amount"),

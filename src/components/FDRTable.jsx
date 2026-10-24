@@ -28,20 +28,29 @@ export function FDRTable({ records = [], onViewDetails, initialStatusFilter = "A
   }, [externalSearchTerm]);
 
   // Filter options and dynamic counts
-  const statusOptions = ['All', 'Verified', 'Pending', 'Discrepancy', 'Expiring Soon'];
+  const statusOptions = ['All', 'Verified', 'Pending', 'Discrepancy', 'Expiring Soon', 'Overdue'];
   const priorityOptions = ['All', 'Critical', 'High', 'Medium', 'Standard'];
 
   // Filtered and sorted records
   const filteredRecords = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     return records
       .filter((item) => {
         // Status filter
-        if (statusFilter !== 'All' && item.verificationStatus !== statusFilter) {
-          return false;
+        if (statusFilter !== 'All') {
+          if (statusFilter === 'Overdue') {
+            const isExpired = item.maturityDate && new Date(item.maturityDate) < today;
+            const isCritical = String(item.priority || '').toUpperCase() === 'CRITICAL';
+            if (!isExpired && !isCritical) return false;
+          } else if (item.verificationStatus !== statusFilter) {
+            return false;
+          }
         }
 
         // Priority filter
-        if (priorityFilter !== 'All' && item.priority !== priorityFilter) {
+        if (priorityFilter !== 'All' && String(item.priority || '').toUpperCase() !== priorityFilter.toUpperCase()) {
           return false;
         }
 

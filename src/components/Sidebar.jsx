@@ -32,7 +32,7 @@ export function Sidebar({
     { id: "Institutions", label: "Institutions", icon: Building2, badge: String(institutionCount) },
     { id: "FDR Repository", label: "FDR Repository", icon: FolderArchive, badge: String(fdrCount) },
     { id: "AI Verification", label: "AI Verification", icon: ScanLine, badge: "AI" },
-    { id: "Renewals & Maturity", label: "Renewals & Maturity", icon: CalendarClock, badge: "2 Due" },
+    { id: "Renewals & Maturity", label: "Renewals & Maturity", icon: CalendarClock, badge: null },
     { id: "Release Requests", label: "Release Requests", icon: FileCheck2, badge: null },
     { id: "Reports & Analytics", label: "Reports & Analytics", icon: BarChart3, badge: null },
     { id: "Audit Trail", label: "Audit Trail", icon: History, badge: null },

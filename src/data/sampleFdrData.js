@@ -462,14 +462,17 @@ export function calculateFdrSummary(records = SAMPLE_FDR_RECORDS) {
   // Pending verification: status is 'Pending'
   const pendingVerification = records.filter(r => r.verificationStatus === "Pending").length;
 
-  // Overdue / Discrepancy cases:
-  // Fictional current reference date is October 2026
+  // Overdue / Critical risk cases (expired maturity date or critical priority)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const overdueCases = records.filter(r => {
-    return (
-      r.verificationStatus === "Discrepancy" ||
-      r.priority === "Critical" ||
-      (r.maturityDate && new Date(r.maturityDate) < new Date("2026-10-23"))
-    );
+    if (!r.maturityDate) return false;
+    try {
+      const mat = new Date(r.maturityDate);
+      return mat < today || String(r.priority || '').toUpperCase() === 'CRITICAL';
+    } catch {
+      return String(r.priority || '').toUpperCase() === 'CRITICAL';
+    }
   }).length;
 
   const verifiedCount = records.filter(r => r.verificationStatus === "Verified").length;

@@ -18,10 +18,15 @@ import {
   Clock,
   Sparkles,
   ShieldCheck,
-  Building
+  Building,
+  Scale,
+  ShieldAlert,
+  AlertTriangle,
+  Cpu
 } from 'lucide-react';
-import { StatusBadge, PriorityBadge } from './StatusBadge';
+import { StatusBadge, PriorityBadge, MaturityBadge, LifecycleBadge } from './StatusBadge';
 import { formatINR, formatDate } from '../data/sampleFdrData';
+import { api } from '../services/api';
 
 export function FdrRepository({
   fdrRecords = [],
@@ -31,10 +36,16 @@ export function FdrRepository({
   onDeleteFdr,
   onViewDetails,
   onOpenAddModal = false,
-  onCloseAddModal
+  onCloseAddModal,
+  onNavigateToOcr,
+  externalSearchTerm = ''
 }) {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(externalSearchTerm || '');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [lifecycleFilter, setLifecycleFilter] = useState('All');
+  const [priorityFilter, setPriorityFilter] = useState('All');
+  const [maturityWindowFilter, setMaturityWindowFilter] = useState('All');
+  const [complianceFilter, setComplianceFilter] = useState('All');
   const [selectedInstitution, setSelectedInstitution] = useState('All');
   const [selectedBank, setSelectedBank] = useState('All');
   const [maturityStart, setMaturityStart] = useState('');
@@ -42,9 +53,59 @@ export function FdrRepository({
   const [sortField, setSortField] = useState('maturityDate');
   const [sortDirection, setSortDirection] = useState('asc');
 
+  // Sync external search term from Header
+  useEffect(() => {
+    if (externalSearchTerm !== undefined) {
+      setSearchTerm(externalSearchTerm);
+    }
+  }, [externalSearchTerm]);
+
   // Modals state
   const [showAddModal, setShowAddModal] = useState(onOpenAddModal);
   const [editingRecord, setEditingRecord] = useState(null);
+  const [complianceSummary, setComplianceSummary] = useState(null);
+  const [complianceLoading, setComplianceLoading] = useState(true);
+  const [complianceError, setComplianceError] = useState(false);
+  const [riskSummary, setRiskSummary] = useState(null);
+  const [riskLoading, setRiskLoading] = useState(true);
+
+  React.useEffect(() => {
+    let isMounted = true;
+    setComplianceLoading(true);
+    setComplianceError(false);
+    setRiskLoading(true);
+
+    api.getComplianceSummary()
+      .then(data => {
+        if (isMounted) {
+          setComplianceSummary(data);
+          setComplianceLoading(false);
+        }
+      })
+      .catch(err => {
+        console.warn('Compliance summary load error:', err);
+        if (isMounted) {
+          setComplianceError(true);
+          setComplianceLoading(false);
+        }
+      });
+
+    api.getRiskSummary()
+      .then(data => {
+        if (isMounted) {
+          setRiskSummary(data);
+          setRiskLoading(false);
+        }
+      })
+      .catch(err => {
+        console.warn('Risk summary load error:', err);
+        if (isMounted) {
+          setRiskLoading(false);
+        }
+      });
+
+    return () => { isMounted = false; };
+  }, [fdrRecords]);
 
   // Sync external add modal trigger if passed
   React.useEffect(() => {
@@ -64,6 +125,17 @@ export function FdrRepository({
     return ['All', ...institutions.map(i => i.name).sort()];
   }, [institutions]);
 
+  // Map risk assessments by fdrId
+  const riskMap = useMemo(() => {
+    const map = new Map();
+    if (Array.isArray(riskSummary?.prioritizedQueue)) {
+      riskSummary.prioritizedQueue.forEach(item => {
+        map.set(item.fdrId, item);
+      });
+    }
+    return map;
+  }, [riskSummary]);
+
   // Filtered and sorted FDRs
   const filteredRecords = useMemo(() => {
     return fdrRecords
@@ -71,6 +143,31 @@ export function FdrRepository({
         // Status filter
         if (statusFilter !== 'All' && item.verificationStatus !== statusFilter) {
           return false;
+        }
+
+        // Priority filter (Step 6)
+        if (priorityFilter !== 'All') {
+          const r = riskMap.get(item.id);
+          const p = r?.priority || item.priority?.toUpperCase() || 'STANDARD';
+          if (p !== priorityFilter.toUpperCase()) return false;
+        }
+
+        // Maturity window filter (Step 6)
+        if (maturityWindowFilter !== 'All') {
+          const r = riskMap.get(item.id);
+          if (r && r.maturityCategory !== maturityWindowFilter) return false;
+        }
+
+        // Compliance filter (Step 6)
+        if (complianceFilter !== 'All') {
+          const r = riskMap.get(item.id);
+          if (r && r.complianceStatus !== complianceFilter) return false;
+        }
+
+        // Lifecycle state filter (Step 7)
+        if (lifecycleFilter !== 'All') {
+          const lc = (item.lifecycleStatus || 'ACTIVE').toUpperCase();
+          if (lc !== lifecycleFilter.toUpperCase()) return false;
         }
 
         // Institution filter
@@ -141,12 +238,17 @@ export function FdrRepository({
     institutions,
     searchTerm,
     statusFilter,
+    lifecycleFilter,
+    priorityFilter,
+    maturityWindowFilter,
+    complianceFilter,
     selectedInstitution,
     selectedBank,
     maturityStart,
     maturityEnd,
     sortField,
-    sortDirection
+    sortDirection,
+    riskMap
   ]);
 
   const handleSort = (field) => {
@@ -161,6 +263,10 @@ export function FdrRepository({
   const handleResetFilters = () => {
     setSearchTerm('');
     setStatusFilter('All');
+    setLifecycleFilter('All');
+    setPriorityFilter('All');
+    setMaturityWindowFilter('All');
+    setComplianceFilter('All');
     setSelectedInstitution('All');
     setSelectedBank('All');
     setMaturityStart('');
@@ -170,6 +276,10 @@ export function FdrRepository({
   const hasActiveFilters =
     searchTerm !== '' ||
     statusFilter !== 'All' ||
+    lifecycleFilter !== 'All' ||
+    priorityFilter !== 'All' ||
+    maturityWindowFilter !== 'All' ||
+    complianceFilter !== 'All' ||
     selectedInstitution !== 'All' ||
     selectedBank !== 'All' ||
     maturityStart !== '' ||
@@ -210,6 +320,16 @@ export function FdrRepository({
           </div>
 
           <div className="flex items-center gap-3">
+            {onNavigateToOcr && (
+              <button
+                onClick={onNavigateToOcr}
+                className="skeuo-panel px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 hover:border-accent-cyan text-text-primary shadow-sm hover:text-accent-cyan transition-colors"
+                title="Intake physical receipt scan via OCR"
+              >
+                <Cpu className="w-4 h-4 text-accent-cyan" />
+                <span>Upload & OCR</span>
+              </button>
+            )}
             <button
               onClick={() => setShowAddModal(true)}
               className="skeuo-btn-accent px-4 py-2.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 shadow-md"
@@ -221,7 +341,7 @@ export function FdrRepository({
         </div>
 
         {/* Dynamic Metric Readout Pills */}
-        <div className="mt-4 pt-3 border-t border-[#d1d9e6]/70 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+        <div className="mt-4 pt-3 border-t border-[#d1d9e6]/70 grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs font-mono">
           <div className="p-2.5 rounded-lg skeuo-recessed flex items-center justify-between">
             <span className="text-text-muted text-[11px]">Vaulted FDRs</span>
             <span className="font-bold text-text-primary text-sm">{fdrRecords.length}</span>
@@ -237,6 +357,18 @@ export function FdrRepository({
           <div className="p-2.5 rounded-lg skeuo-recessed flex items-center justify-between">
             <span className="text-text-muted text-[11px]">Pending / Alerts</span>
             <span className="font-bold text-[#b7791f] text-sm">{pendingCount + alertCount}</span>
+          </div>
+          <div className="p-2.5 rounded-lg skeuo-recessed flex items-center justify-between col-span-2 sm:col-span-1">
+            <span className="text-text-muted text-[11px]">Avg Compliance</span>
+            <span className="font-bold text-accent-cyan text-sm">
+              {complianceLoading
+                ? 'Evaluating...'
+                : complianceError
+                ? 'Unavailable'
+                : complianceSummary?.averageComplianceScore != null
+                ? `${complianceSummary.averageComplianceScore}%`
+                : '—'}
+            </span>
           </div>
         </div>
       </div>
@@ -322,6 +454,72 @@ export function FdrRepository({
                   {availableBanks.map((b) => (
                     <option key={b} value={b}>{b === 'All' ? 'All Banks' : b}</option>
                   ))}
+                </select>
+              </div>
+
+              {/* Priority Filter (Step 6) */}
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] text-text-muted hidden sm:inline">Priority:</span>
+                <select
+                  value={priorityFilter}
+                  onChange={(e) => setPriorityFilter(e.target.value)}
+                  className="px-2.5 py-1 text-xs font-mono skeuo-recessed text-text-primary border border-[#babecc] rounded-lg"
+                >
+                  <option value="All">All Priorities</option>
+                  <option value="CRITICAL">Critical</option>
+                  <option value="HIGH">High</option>
+                  <option value="MEDIUM">Medium</option>
+                  <option value="LOW">Low</option>
+                </select>
+              </div>
+
+              {/* Maturity Window Filter (Step 6) */}
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] text-text-muted hidden sm:inline">Maturity Window:</span>
+                <select
+                  value={maturityWindowFilter}
+                  onChange={(e) => setMaturityWindowFilter(e.target.value)}
+                  className="px-2.5 py-1 text-xs font-mono skeuo-recessed text-text-primary border border-[#babecc] rounded-lg"
+                >
+                  <option value="All">All Horizons</option>
+                  <option value="EXPIRED">Expired (&lt; 0d)</option>
+                  <option value="MATURING_30_DAYS">&le; 30 Days</option>
+                  <option value="MATURING_60_DAYS">31–60 Days</option>
+                  <option value="MATURING_90_DAYS">61–90 Days</option>
+                  <option value="BEYOND_90_DAYS">&gt; 90 Days</option>
+                </select>
+              </div>
+
+              {/* Compliance Filter (Step 6) */}
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] text-text-muted hidden sm:inline">Compliance:</span>
+                <select
+                  value={complianceFilter}
+                  onChange={(e) => setComplianceFilter(e.target.value)}
+                  className="px-2.5 py-1 text-xs font-mono skeuo-recessed text-text-primary border border-[#babecc] rounded-lg"
+                >
+                  <option value="All">All Statuses</option>
+                  <option value="COMPLIANT">Compliant</option>
+                  <option value="ACTION_REQUIRED">Action Required</option>
+                  <option value="NON_COMPLIANT">Non-Compliant</option>
+                  <option value="UNDER_REVIEW">Under Review</option>
+                </select>
+              </div>
+
+              {/* Lifecycle State Filter (Step 7) */}
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] text-text-muted hidden sm:inline">Lifecycle:</span>
+                <select
+                  value={lifecycleFilter}
+                  onChange={(e) => setLifecycleFilter(e.target.value)}
+                  className="px-2.5 py-1 text-xs font-mono skeuo-recessed text-text-primary border border-[#babecc] rounded-lg"
+                >
+                  <option value="All">All Lifecycles</option>
+                  <option value="ACTIVE">Active</option>
+                  <option value="RENEWAL_PENDING">Renewal Pending</option>
+                  <option value="REPLACEMENT_PENDING">Replacement Pending</option>
+                  <option value="RELEASE_REQUESTED">Release Requested</option>
+                  <option value="RELEASED">Released / Closed</option>
                 </select>
               </div>
 
@@ -413,6 +611,7 @@ export function FdrRepository({
                   </div>
                 </th>
                 <th className="py-3 px-4 font-semibold">Verification</th>
+                <th className="py-3 px-4 font-semibold">Compliance Sentry</th>
                 <th className="py-3 px-4 font-semibold">Priority</th>
                 <th className="py-3 px-4 font-semibold text-center">Actions</th>
               </tr>
@@ -476,21 +675,97 @@ export function FdrRepository({
                       <div className="font-semibold text-text-primary">
                         {formatDate(item.maturityDate)}
                       </div>
-                      {item.verificationStatus === 'Expiring Soon' && (
-                        <div className="text-[9px] font-mono text-[#ff6b35] font-bold mt-0.5">
-                          Expiring Soon
-                        </div>
-                      )}
+                      {(() => {
+                        const rItem = riskMap.get(item.id);
+                        if (rItem) {
+                          return (
+                            <div className="mt-1">
+                              <MaturityBadge category={rItem.maturityCategory} daysRemaining={rItem.daysRemaining} />
+                            </div>
+                          );
+                        }
+                        if (item.verificationStatus === 'Expiring Soon') {
+                          return (
+                            <div className="text-[9px] font-mono text-[#ff6b35] font-bold mt-0.5">
+                              Expiring Soon
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                     </td>
 
-                    {/* Verification Status */}
+                    {/* Verification & Lifecycle Status */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <StatusBadge status={item.verificationStatus} />
+                      <div className="space-y-1">
+                        <StatusBadge status={item.verificationStatus} />
+                        {item.lifecycleStatus && item.lifecycleStatus !== 'ACTIVE' && (
+                          <div>
+                            <LifecycleBadge status={item.lifecycleStatus} />
+                          </div>
+                        )}
+                      </div>
+                    </td>
+
+                    {/* Compliance Sentry Audit */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      {(() => {
+                        if (complianceLoading) {
+                          return <span className="text-[10px] text-text-muted font-mono animate-pulse">Evaluating...</span>;
+                        }
+                        if (complianceError || !complianceSummary) {
+                          return <span className="text-[10px] text-text-muted font-mono" title="Compliance audit currently unavailable">—</span>;
+                        }
+                        const compItem = Array.isArray(complianceSummary?.instruments)
+                          ? complianceSummary.instruments.find(c => c.fdrId === item.id)
+                          : null;
+                        if (!compItem) return <span className="text-[10px] text-text-muted font-mono">—</span>;
+                        return (
+                          <div
+                            onClick={() => onViewDetails(item)}
+                            className="cursor-pointer inline-flex items-center"
+                            title={compItem.primaryIssue || 'All 8 compliance rules passed. Click to view explainable audit.'}
+                          >
+                            {compItem.overallStatus === 'COMPLIANT' && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#eafaf1] text-[#1b7943] border border-[#b7ebcd] inline-flex items-center gap-1 hover:border-[#1b7943]">
+                                <CheckCircle2 className="w-3 h-3 text-[#1b7943]" />
+                                <span>{compItem.complianceScore}% Compliant</span>
+                              </span>
+                            )}
+                            {compItem.overallStatus === 'ACTION_REQUIRED' && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#fff8e6] text-[#b36b00] border border-[#ffd166] inline-flex items-center gap-1 hover:border-[#b36b00]">
+                                <AlertTriangle className="w-3 h-3 text-[#b36b00]" />
+                                <span>Action Req ({compItem.warningCount})</span>
+                              </span>
+                            )}
+                            {compItem.overallStatus === 'NON_COMPLIANT' && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#fff1f0] text-[#cf1322] border border-[#ffa39e] inline-flex items-center gap-1 hover:border-[#cf1322]">
+                                <AlertCircle className="w-3 h-3 text-[#cf1322]" />
+                                <span>Non-Compliant ({compItem.failCount})</span>
+                              </span>
+                            )}
+                            {(compItem.overallStatus === 'UNDER_REVIEW' || !['COMPLIANT', 'ACTION_REQUIRED', 'NON_COMPLIANT'].includes(compItem.overallStatus)) && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#e6f7ff] text-[#096dd9] border border-[#91d5ff] inline-flex items-center gap-1 hover:border-[#096dd9]">
+                                <Clock className="w-3 h-3 text-[#096dd9]" />
+                                <span>{compItem.overallStatus === 'UNDER_REVIEW' ? 'Under Review' : compItem.overallStatus || 'Under Review'}</span>
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </td>
 
                     {/* Priority */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <PriorityBadge priority={item.priority || 'Standard'} />
+                      {(() => {
+                        const rItem = riskMap.get(item.id);
+                        return (
+                          <PriorityBadge
+                            priority={rItem?.priority || item.priority || 'Standard'}
+                            score={rItem?.priorityScore}
+                          />
+                        );
+                      })()}
                     </td>
 
                     {/* Actions */}
@@ -518,7 +793,7 @@ export function FdrRepository({
               ) : (
                 /* Empty State */
                 <tr>
-                  <td colSpan={9} className="py-12 px-4 text-center">
+                  <td colSpan={10} className="py-12 px-4 text-center">
                     <div className="max-w-sm mx-auto p-6 rounded-2xl skeuo-recessed text-text-muted">
                       <AlertCircle className="w-10 h-10 text-accent-orange mx-auto mb-3" />
                       <h3 className="text-sm font-bold text-text-primary font-sans">

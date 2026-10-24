@@ -13,6 +13,7 @@ import { QuickActions } from './QuickActions';
 import { DashboardCharts } from './DashboardCharts';
 import { RecentActivity } from './RecentActivity';
 import { FDRTable } from './FDRTable';
+import { PrioritizedActionQueue } from './PrioritizedActionQueue';
 import { calculateFdrSummary, formatINR } from '../data/sampleFdrData';
 
 export function Dashboard({
@@ -110,8 +111,8 @@ export function Dashboard({
           subtext="Critical unrenewed deposit lapses"
           icon={AlertTriangle}
           variant="critical"
-          isActive={activeTableFilter === "Discrepancy"}
-          onClick={() => handleCardClick("Discrepancy")}
+          isActive={activeTableFilter === "Overdue"}
+          onClick={() => handleCardClick("Overdue")}
         />
       </div>
 
@@ -124,8 +125,14 @@ export function Dashboard({
         <DashboardCharts records={records} />
 
         {/* Recent Activity Live Panel */}
-        <RecentActivity onInspectLog={onNavigateToAudit} />
+        <RecentActivity records={records} onInspectLog={onNavigateToAudit} />
       </div>
+
+      {/* Statutory Maturity Tracking & Explainable Risk Prioritized Action Queue (Step 6) */}
+      <PrioritizedActionQueue
+        records={records}
+        onViewDetails={onViewDetails}
+      />
 
       {/* Priority Cases Table */}
       <div id="fdr-cases-table">

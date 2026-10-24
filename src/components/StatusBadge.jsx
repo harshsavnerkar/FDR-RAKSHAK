@@ -62,43 +62,192 @@ export function StatusBadge({ status, size = "md" }) {
 /**
  * PriorityBadge Component
  */
-export function PriorityBadge({ priority }) {
+export function PriorityBadge({ priority, score = null }) {
+  const normalized = String(priority || 'Standard').toUpperCase();
   const getPriorityStyle = (p) => {
     switch (p) {
-      case 'Critical':
+      case 'CRITICAL':
         return {
           text: 'CRITICAL',
           classes: 'bg-[#ff4757]/10 text-[#d63031] border-[#ff4757]/30 shadow-[inset_1px_1px_2px_#babecc]',
           dotColor: 'bg-[#d63031]'
         };
-      case 'High':
+      case 'HIGH':
         return {
           text: 'HIGH',
           classes: 'bg-[#ff6b35]/10 text-[#e65100] border-[#ff6b35]/30 shadow-[inset_1px_1px_2px_#babecc]',
           dotColor: 'bg-[#ff6b35]'
         };
-      case 'Medium':
+      case 'MEDIUM':
         return {
           text: 'MEDIUM',
           classes: 'bg-[#e67e22]/10 text-[#d35400] border-[#e67e22]/30 shadow-[inset_1px_1px_2px_#babecc]',
           dotColor: 'bg-[#e67e22]'
         };
-      case 'Standard':
+      case 'LOW':
+      case 'STANDARD':
       default:
         return {
-          text: 'STANDARD',
+          text: p === 'LOW' ? 'LOW' : 'STANDARD',
           classes: 'bg-panel text-text-muted border-recessed shadow-[inset_1px_1px_2px_#babecc]',
           dotColor: 'bg-[#718096]'
         };
     }
   };
 
-  const style = getPriorityStyle(priority);
+  const style = getPriorityStyle(normalized);
 
   return (
     <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-mono font-semibold border ${style.classes}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${style.dotColor}`} />
-      {style.text}
+      <span>{style.text}</span>
+      {score !== null && (
+        <span className="text-[9px] opacity-75 font-normal ml-0.5">({score})</span>
+      )}
+    </span>
+  );
+}
+
+/**
+ * MaturityBadge Component (Step 6)
+ */
+export function MaturityBadge({ category, daysRemaining = null, showDays = true }) {
+  const normalized = String(category || 'UNKNOWN').toUpperCase();
+
+  const getConfig = (cat) => {
+    switch (cat) {
+      case 'EXPIRED':
+        return {
+          label: 'EXPIRED',
+          classes: 'bg-[#fff0f2] text-[#c53030] border-[#feb2b2]',
+          dotClass: 'bg-[#c53030]'
+        };
+      case 'MATURING_30_DAYS':
+        return {
+          label: '< 30 DAYS',
+          classes: 'bg-[#fff5eb] text-[#c05621] border-[#fbd38d]',
+          dotClass: 'bg-[#ff6b35]'
+        };
+      case 'MATURING_60_DAYS':
+        return {
+          label: '31–60 DAYS',
+          classes: 'bg-[#fff8e6] text-[#b7791f] border-[#fbd38d]',
+          dotClass: 'bg-[#e67e22]'
+        };
+      case 'MATURING_90_DAYS':
+        return {
+          label: '61–90 DAYS',
+          classes: 'bg-[#f0f9ff] text-[#0284c7] border-[#bae6fd]',
+          dotClass: 'bg-[#0284c7]'
+        };
+      case 'BEYOND_90_DAYS':
+        return {
+          label: '> 90 DAYS',
+          classes: 'bg-[#eafaf1] text-[#1b7943] border-[#b7ebcd]',
+          dotClass: 'bg-[#1b7943]'
+        };
+      case 'UNKNOWN':
+      default:
+        return {
+          label: 'UNKNOWN',
+          classes: 'bg-[#f1f2f6] text-text-muted border-[#d1d9e6]',
+          dotClass: 'bg-[#a4b0be]'
+        };
+    }
+  };
+
+  const cfg = getConfig(normalized);
+
+  let daysText = '';
+  if (showDays && daysRemaining !== null && daysRemaining !== undefined) {
+    if (daysRemaining < 0) {
+      daysText = ` (${Math.abs(daysRemaining)}d overdue)`;
+    } else if (daysRemaining === 0) {
+      daysText = ' (Today)';
+    } else {
+      daysText = ` (${daysRemaining}d)`;
+    }
+  }
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-mono font-medium border select-none ${cfg.classes} shadow-[inset_1px_1px_2px_#babecc,inset_-1px_-1px_2px_#ffffff]`}
+      title={daysRemaining !== null ? `Maturity: ${daysRemaining} days remaining` : cfg.label}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dotClass}`} />
+      <span>{cfg.label}{daysText}</span>
+    </span>
+  );
+}
+
+/**
+ * LifecycleBadge Component (Step 7)
+ */
+export function LifecycleBadge({ status }) {
+  const normalized = String(status || 'ACTIVE').toUpperCase();
+
+  const getConfig = (st) => {
+    switch (st) {
+      case 'ACTIVE':
+        return {
+          label: 'ACTIVE',
+          classes: 'bg-[#eafaf1] text-[#1b7943] border-[#b7ebcd]',
+          dotClass: 'bg-[#1b7943]'
+        };
+      case 'RENEWAL_PENDING':
+        return {
+          label: 'RENEWAL PENDING',
+          classes: 'bg-[#fff8e6] text-[#b7791f] border-[#fbd38d]',
+          dotClass: 'bg-[#ff6b35]'
+        };
+      case 'REPLACEMENT_PENDING':
+        return {
+          label: 'REPLACEMENT PENDING',
+          classes: 'bg-[#f0f9ff] text-[#0369a1] border-[#bae6fd]',
+          dotClass: 'bg-[#0284c7]'
+        };
+      case 'RELEASE_REQUESTED':
+        return {
+          label: 'RELEASE REQUESTED',
+          classes: 'bg-[#fff5eb] text-[#c05621] border-[#fbd38d]',
+          dotClass: 'bg-[#ff6b35]'
+        };
+      case 'RELEASE_APPROVED':
+        return {
+          label: 'RELEASE APPROVED',
+          classes: 'bg-[#eff6ff] text-[#1d4ed8] border-[#bfdbfe]',
+          dotClass: 'bg-[#2563eb]'
+        };
+      case 'RELEASED':
+        return {
+          label: 'RELEASED / CLOSED',
+          classes: 'bg-[#f1f2f6] text-[#4b5563] border-[#d1d9e6]',
+          dotClass: 'bg-[#6b7280]'
+        };
+      case 'REJECTED':
+        return {
+          label: 'REJECTED',
+          classes: 'bg-[#fff0f2] text-[#c53030] border-[#feb2b2]',
+          dotClass: 'bg-[#c53030]'
+        };
+      default:
+        return {
+          label: st,
+          classes: 'bg-panel text-text-muted border-recessed',
+          dotClass: 'bg-[#718096]'
+        };
+    }
+  };
+
+  const cfg = getConfig(normalized);
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border select-none ${cfg.classes} shadow-[inset_1px_1px_2px_#babecc]`}
+      title={`Lifecycle State: ${cfg.label}`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${cfg.dotClass}`} />
+      <span>{cfg.label}</span>
     </span>
   );
 }

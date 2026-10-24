@@ -9,6 +9,15 @@ dist/
 .env.*
 !.env.example
 
+# File uploads directory
+uploads/
+backend/uploads/
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
 # Logs and debug output
 *.log
 npm-debug.log*

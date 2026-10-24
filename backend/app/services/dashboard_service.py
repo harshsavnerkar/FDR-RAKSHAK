@@ -33,10 +33,11 @@ def get_dashboard_summary(db: Session) -> DashboardSummaryOut:
         select(func.count(FDR.id)).where(FDR.verification_status == "Pending")
     ).scalar_one()
 
-    # 4. Overdue / Discrepancy cases
+    # 4. Overdue / Critical risk cases (expired maturity date or critical priority)
+    today = date.today()
     overdue_count = db.execute(
         select(func.count(FDR.id)).where(
-            (FDR.verification_status == "Discrepancy") | (FDR.priority == "Critical")
+            (FDR.maturity_date < today) | (FDR.priority == "Critical")
         )
     ).scalar_one()
 
