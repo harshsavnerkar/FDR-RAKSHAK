@@ -23,12 +23,14 @@ export function Sidebar({
   isCollapsed,
   onToggleCollapse,
   mobileOpen,
-  onCloseMobile
+  onCloseMobile,
+  institutionCount = 10,
+  fdrCount = 10
 }) {
   const navItems = [
     { id: "Overview", label: "Overview", icon: LayoutDashboard, badge: null },
-    { id: "Institutions", label: "Institutions", icon: Building2, badge: "142" },
-    { id: "FDR Repository", label: "FDR Repository", icon: FolderArchive, badge: "10" },
+    { id: "Institutions", label: "Institutions", icon: Building2, badge: String(institutionCount) },
+    { id: "FDR Repository", label: "FDR Repository", icon: FolderArchive, badge: String(fdrCount) },
     { id: "AI Verification", label: "AI Verification", icon: ScanLine, badge: "AI" },
     { id: "Renewals & Maturity", label: "Renewals & Maturity", icon: CalendarClock, badge: "2 Due" },
     { id: "Release Requests", label: "Release Requests", icon: FileCheck2, badge: null },

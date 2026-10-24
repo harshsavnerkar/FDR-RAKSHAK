@@ -1,5 +1,5 @@
 /**
- * Sample Fixed Deposit Receipt (FDR) records for AICTE Regulation Bureau.
+ * Sample Fixed Deposit Receipt (FDR) and Institution records for AICTE Regulation Bureau.
  * Demo/Mock administrative records.
  */
 
@@ -276,14 +276,187 @@ export const SAMPLE_FDR_RECORDS = [
   }
 ];
 
+import { ALL_INDIAN_STATES_AND_UTS, detectLocationFromPinCode } from './indiaPinCodes';
+export { ALL_INDIAN_STATES_AND_UTS, detectLocationFromPinCode };
+
+/**
+ * Sample Institutions corresponding to the institutional FDR records.
+ */
+export const SAMPLE_INSTITUTIONS = [
+  {
+    id: "INST-SPIT-MH-019",
+    name: "Sardar Patel Institute of Technology",
+    code: "SPIT-MH-019",
+    pid: "1-4190281",
+    type: "Technical Degree (UG/PG)",
+    pincode: "400058",
+    state: "Maharashtra",
+    city: "Mumbai",
+    address: "Bhavans Campus, Munshi Nagar, Andheri West",
+    trust: "Bharatiya Vidya Bhavan",
+    contactPerson: "Dr. B. N. Chaudhari",
+    email: "principal@spit.ac.in",
+    phone: "+91 22 2670 7440"
+  },
+  {
+    id: "INST-VCET-KA-112",
+    name: "Vivekananda College of Engineering & Tech",
+    code: "VCET-KA-112",
+    pid: "1-5231904",
+    type: "Engineering & Technology",
+    pincode: "574203",
+    state: "Karnataka",
+    city: "Puttur",
+    address: "Nehru Nagar, Puttur, Dakshina Kannada",
+    trust: "Vivekananda Vidya Vardhaka Sangha",
+    contactPerson: "Dr. Mahesh Prasanna",
+    email: "principal@vcetputtur.ac.in",
+    phone: "+91 8251 234555"
+  },
+  {
+    id: "INST-DITE-DL-004",
+    name: "Delhi Institute of Technical Education",
+    code: "DITE-DL-004",
+    pid: "1-3310928",
+    type: "Polytechnic / Applied Arts",
+    pincode: "110020",
+    state: "Delhi NCT",
+    city: "New Delhi",
+    address: "Okhla Industrial Area Phase-II",
+    trust: "Delhi DTTE Society",
+    contactPerson: "Prof. S. K. Goel",
+    email: "director@dite.delhi.gov.in",
+    phone: "+91 11 2638 5200"
+  },
+  {
+    id: "INST-PSGI-TN-087",
+    name: "PSG Institute of Applied Technology",
+    code: "PSGI-TN-087",
+    pid: "1-7782019",
+    type: "Autonomous Engineering College",
+    pincode: "641004",
+    state: "Tamil Nadu",
+    city: "Coimbatore",
+    address: "Avinashi Road, Peelamedu",
+    trust: "PSG & Sons Charities",
+    contactPerson: "Dr. P. V. Mohanram",
+    email: "contact@psgitech.ac.in",
+    phone: "+91 422 393 3555"
+  },
+  {
+    id: "INST-KJSP-MH-055",
+    name: "K.J. Somaiya Polytechnic",
+    code: "KJSP-MH-055",
+    pid: "1-2294103",
+    type: "Diploma Engineering",
+    pincode: "400077",
+    state: "Maharashtra",
+    city: "Mumbai",
+    address: "Vidyanagar, Vidyavihar East",
+    trust: "Somaiya Vidyavihar Trust",
+    contactPerson: "Prof. V. B. Agrawal",
+    email: "principal.polytech@somaiya.edu",
+    phone: "+91 22 6728 3000"
+  },
+  {
+    id: "INST-MACE-UP-143",
+    name: "Maulana Azad College of Engineering",
+    code: "MACE-UP-143",
+    pid: "1-8849120",
+    type: "Private Engineering Institution",
+    pincode: "226201",
+    state: "Uttar Pradesh",
+    city: "Lucknow",
+    address: "Sitapur Road, Bakshi Ka Talab",
+    trust: "Azad Educational Society",
+    contactPerson: "Dr. Farhan Ahmad",
+    email: "info@mace.ac.in",
+    phone: "+91 522 281 7600"
+  },
+  {
+    id: "INST-BITS-WB-062",
+    name: "Bengal Institute of Technology & Science",
+    code: "BITS-WB-062",
+    pid: "1-6629104",
+    type: "Technical Degree (UG/PG)",
+    pincode: "700124",
+    state: "West Bengal",
+    city: "Kolkata",
+    address: "1/4C Khilkapur, Bamunmura, Barasat",
+    trust: "Techno India Educational Group",
+    contactPerson: "Dr. Tapas Roy",
+    email: "director@bitskolkata.edu.in",
+    phone: "+91 33 2584 2100"
+  },
+  {
+    id: "INST-IIMS-MH-219",
+    name: "Indira Institute of Management & Science",
+    code: "IIMS-MH-219",
+    pid: "1-1029481",
+    type: "Management Institute (MBA/PGDM)",
+    pincode: "411033",
+    state: "Maharashtra",
+    city: "Pune",
+    address: "'Tapasya' 85/5-B, New Pune-Mumbai Highway, Tathawade",
+    trust: "Shree Chanakya Education Society",
+    contactPerson: "Dr. Tarita Shankar",
+    email: "director@indiraiims.edu.in",
+    phone: "+91 20 6675 9400"
+  },
+  {
+    id: "INST-KIIS-OD-034",
+    name: "Kalinga Institute of Industrial Science",
+    code: "KIIS-OD-034",
+    pid: "1-9041284",
+    type: "Engineering & Applied Sciences",
+    pincode: "751024",
+    state: "Odisha",
+    city: "Bhubaneswar",
+    address: "Campus 3, Patia",
+    trust: "Kalinga Educational Foundation",
+    contactPerson: "Dr. S. K. Mohapatra",
+    email: "dean@kiis.ac.in",
+    phone: "+91 674 272 5113"
+  },
+  {
+    id: "INST-GTP-GJ-089",
+    name: "Gujarat Technological Polytechnic",
+    code: "GTP-GJ-089",
+    pid: "1-4491028",
+    type: "Diploma Polytechnic",
+    pincode: "380009",
+    state: "Gujarat",
+    city: "Ahmedabad",
+    address: "Opp. PRL, Navrangpura",
+    trust: "Gujarat Technical Development Board",
+    contactPerson: "Prof. Hitesh Patel",
+    email: "principal@gtp.edu.in",
+    phone: "+91 79 2630 1445"
+  }
+];
+
+/**
+ * Returns associated FDR records for a given institution.
+ */
+export function getAssociatedFdrs(institution, fdrList = []) {
+  if (!institution) return [];
+  return fdrList.filter((fdr) => {
+    return (
+      (fdr.institutionCode && fdr.institutionCode === institution.code) ||
+      (fdr.institution && fdr.institution.toLowerCase() === institution.name.toLowerCase()) ||
+      (fdr.institutionId && fdr.institutionId === institution.id)
+    );
+  });
+}
+
 /**
  * Derives dynamic summary counts and values from the record set.
  */
 export function calculateFdrSummary(records = SAMPLE_FDR_RECORDS) {
   const total = records.length;
-  const totalAmount = records.reduce((sum, r) => sum + r.depositAmount, 0);
+  const totalAmount = records.reduce((sum, r) => sum + (Number(r.depositAmount) || 0), 0);
 
-  // Expiring soon: status is 'Expiring Soon' or maturity within 45 days
+  // Expiring soon: status is 'Expiring Soon'
   const expiringSoon = records.filter(r => r.verificationStatus === "Expiring Soon").length;
 
   // Pending verification: status is 'Pending'
@@ -292,7 +465,11 @@ export function calculateFdrSummary(records = SAMPLE_FDR_RECORDS) {
   // Overdue / Discrepancy cases:
   // Fictional current reference date is October 2026
   const overdueCases = records.filter(r => {
-    return r.verificationStatus === "Discrepancy" || r.priority === "Critical" || new Date(r.maturityDate) < new Date("2026-10-23");
+    return (
+      r.verificationStatus === "Discrepancy" ||
+      r.priority === "Critical" ||
+      (r.maturityDate && new Date(r.maturityDate) < new Date("2026-10-23"))
+    );
   }).length;
 
   const verifiedCount = records.filter(r => r.verificationStatus === "Verified").length;
@@ -311,7 +488,7 @@ export function calculateFdrSummary(records = SAMPLE_FDR_RECORDS) {
  * Format Indian Rupee currency: e.g. ₹35,00,000 or ₹3.50 Cr
  */
 export function formatINR(amount, compact = false) {
-  if (typeof amount !== 'number') return '₹0';
+  if (typeof amount !== 'number' || isNaN(amount)) return '₹0';
   
   if (compact) {
     if (amount >= 10000000) {
@@ -336,6 +513,7 @@ export function formatDate(dateString) {
   if (!dateString) return '—';
   try {
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
     return date.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
@@ -393,8 +571,44 @@ export const SAMPLE_ACTIVITY_FEED = [
 ];
 
 /**
- * Upcoming maturity monthly distribution for charts
+ * Dynamically computes upcoming maturity monthly distribution for charts from any FDR list.
  */
+export function calculateMaturityChartData(records = []) {
+  if (!records || records.length === 0) return [];
+  
+  const monthMap = {};
+  records.forEach((r) => {
+    if (!r.maturityDate) return;
+    try {
+      const d = new Date(r.maturityDate);
+      if (isNaN(d.getTime())) return;
+      const monthKey = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      if (!monthMap[monthKey]) {
+        monthMap[monthKey] = {
+          month: monthKey,
+          timestamp: new Date(d.getFullYear(), d.getMonth(), 1).getTime(),
+          count: 0,
+          amountInLakhs: 0
+        };
+      }
+      monthMap[monthKey].count += 1;
+      monthMap[monthKey].amountInLakhs += Math.round((Number(r.depositAmount) || 0) / 100000);
+    } catch {
+      // ignore unparseable
+    }
+  });
+
+  return Object.values(monthMap)
+    .sort((a, b) => a.timestamp - b.timestamp)
+    .slice(0, 6)
+    .map(item => ({
+      month: item.month,
+      count: item.count,
+      amountInLakhs: item.amountInLakhs,
+      label: `${item.amountInLakhs}L (${item.count} FDR${item.count > 1 ? 's' : ''})`
+    }));
+}
+
 export const UPCOMING_MATURITY_DATA = [
   { month: "Nov 2026", count: 2, amountInLakhs: 60, label: "60L (2 FDRs)" },
   { month: "Dec 2026", count: 1, amountInLakhs: 20, label: "20L (1 FDR)" },

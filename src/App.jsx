@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
+import { InstitutionManagement } from './components/InstitutionManagement';
+import { FdrRepository } from './components/FdrRepository';
 import { PlaceholderView } from './components/PlaceholderView';
 import { RecordDetailsModal } from './components/RecordDetailsModal';
 import { ActionModal } from './components/ActionModal';
-import { SAMPLE_FDR_RECORDS } from './data/sampleFdrData';
+import { SAMPLE_FDR_RECORDS, SAMPLE_INSTITUTIONS } from './data/sampleFdrData';
 import { Shield } from 'lucide-react';
 
 export function App() {
@@ -17,20 +19,90 @@ export function App() {
   const [activeActionModal, setActiveActionModal] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
+  // Modal trigger states from quick actions
+  const [openInstitutionAdd, setOpenInstitutionAdd] = useState(false);
+  const [openFdrAdd, setOpenFdrAdd] = useState(false);
+
+  // Shared application datasets (Single source of truth)
+  const [institutions, setInstitutions] = useState(SAMPLE_INSTITUTIONS);
+  const [fdrRecords, setFdrRecords] = useState(SAMPLE_FDR_RECORDS);
+
   // Temporary toast feedback
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 4000);
+    }, 4500);
   };
 
   const handleActionTrigger = (actionName, record) => {
-    showToast(`${actionName} executed for ${record.institutionCode} (${record.reference})`);
+    showToast(`Simulation: ${actionName} dispatched for ${record.institutionCode} (${record.reference})`);
   };
 
+  // Quick Actions Router
   const handleQuickActionSelect = (act) => {
-    setActiveActionModal(act);
+    if (act.id === 'register' || act.targetNav === 'Institutions') {
+      setActiveNav('Institutions');
+      setOpenInstitutionAdd(true);
+    } else if (act.id === 'upload' || act.targetNav === 'FDR Repository') {
+      setActiveNav('FDR Repository');
+      setOpenFdrAdd(true);
+    } else {
+      setActiveActionModal(act);
+    }
+  };
+
+  // Institution CRUD handlers
+  const handleAddInstitution = (newInst) => {
+    setInstitutions(prev => [newInst, ...prev]);
+    showToast(`Institution "${newInst.name}" (${newInst.code}) registered successfully.`);
+  };
+
+  const handleUpdateInstitution = (updatedInst) => {
+    setInstitutions(prev => prev.map(i => i.id === updatedInst.id ? updatedInst : i));
+    
+    // Propagate updated name/state to linked FDR records immediately
+    setFdrRecords(prev => prev.map(f => {
+      if (f.institutionCode === updatedInst.code || f.institutionId === updatedInst.id) {
+        return {
+          ...f,
+          institution: updatedInst.name,
+          institutionCode: updatedInst.code,
+          state: updatedInst.state || f.state,
+          trust: updatedInst.trust || f.trust
+        };
+      }
+      return f;
+    }));
+
+    showToast(`Institution "${updatedInst.name}" updated successfully.`);
+  };
+
+  const handleDeleteInstitution = (instId) => {
+    const inst = institutions.find(i => i.id === instId);
+    if (!inst) return;
+    setInstitutions(prev => prev.filter(i => i.id !== instId));
+    showToast(`Institution "${inst.name}" removed from registry.`);
+  };
+
+  // FDR CRUD handlers
+  const handleAddFdr = (newFdr) => {
+    setFdrRecords(prev => [newFdr, ...prev]);
+    showToast(`Fixed Deposit Receipt "${newFdr.reference}" vaulted successfully.`);
+  };
+
+  const handleUpdateFdr = (updatedFdr) => {
+    setFdrRecords(prev => prev.map(f => f.id === updatedFdr.id ? updatedFdr : f));
+    if (selectedRecord && selectedRecord.id === updatedFdr.id) {
+      setSelectedRecord(updatedFdr);
+    }
+    showToast(`FDR "${updatedFdr.reference}" updated successfully.`);
+  };
+
+  const handleDeleteFdr = (fdrId) => {
+    const fdr = fdrRecords.find(f => f.id === fdrId);
+    setFdrRecords(prev => prev.filter(f => f.id !== fdrId));
+    showToast(`FDR "${fdr?.reference || fdrId}" removed from repository.`);
   };
 
   return (
@@ -39,11 +111,17 @@ export function App() {
       {/* Left Navigation Sidebar */}
       <Sidebar
         activeNav={activeNav}
-        onSelectNav={(navId) => setActiveNav(navId)}
+        onSelectNav={(navId) => {
+          setActiveNav(navId);
+          setOpenInstitutionAdd(false);
+          setOpenFdrAdd(false);
+        }}
         isCollapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         mobileOpen={mobileDrawerOpen}
         onCloseMobile={() => setMobileDrawerOpen(false)}
+        institutionCount={institutions.length}
+        fdrCount={fdrRecords.length}
       />
 
       {/* Main Content Area */}
@@ -62,20 +140,52 @@ export function App() {
             }
           }}
           sidebarCollapsed={sidebarCollapsed}
-          onSelectNav={(navId) => setActiveNav(navId)}
+          onSelectNav={(navId) => {
+            setActiveNav(navId);
+            setOpenInstitutionAdd(false);
+            setOpenFdrAdd(false);
+          }}
         />
 
         {/* Scrollable Main View */}
         <main className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-          {activeNav === "Overview" ? (
+          {activeNav === "Overview" && (
             <Dashboard
-              records={SAMPLE_FDR_RECORDS}
+              records={fdrRecords}
               onViewDetails={(rec) => setSelectedRecord(rec)}
               onActionSelect={handleQuickActionSelect}
               onNavigateToAudit={() => setActiveNav("Audit Trail")}
               searchTerm={globalSearchTerm}
             />
-          ) : (
+          )}
+
+          {activeNav === "Institutions" && (
+            <InstitutionManagement
+              institutions={institutions}
+              fdrRecords={fdrRecords}
+              onAddInstitution={handleAddInstitution}
+              onUpdateInstitution={handleUpdateInstitution}
+              onDeleteInstitution={handleDeleteInstitution}
+              onViewFdrDetails={(rec) => setSelectedRecord(rec)}
+              onOpenAddModal={openInstitutionAdd}
+              onCloseAddModal={() => setOpenInstitutionAdd(false)}
+            />
+          )}
+
+          {activeNav === "FDR Repository" && (
+            <FdrRepository
+              fdrRecords={fdrRecords}
+              institutions={institutions}
+              onAddFdr={handleAddFdr}
+              onUpdateFdr={handleUpdateFdr}
+              onDeleteFdr={handleDeleteFdr}
+              onViewDetails={(rec) => setSelectedRecord(rec)}
+              onOpenAddModal={openFdrAdd}
+              onCloseAddModal={() => setOpenFdrAdd(false)}
+            />
+          )}
+
+          {activeNav !== "Overview" && activeNav !== "Institutions" && activeNav !== "FDR Repository" && (
             <PlaceholderView
               viewName={activeNav}
               onReturnToOverview={() => setActiveNav("Overview")}
@@ -95,13 +205,13 @@ export function App() {
                 <span>Security Engine v1.0.4-REG</span>
               </span>
               <span>•</span>
-              <span>Simulated UI Environment</span>
+              <span>Local Frontend Prototype (Step 2)</span>
             </div>
           </footer>
         </main>
       </div>
 
-      {/* Record Details Modal */}
+      {/* Shared Record Details Modal */}
       {selectedRecord && (
         <RecordDetailsModal
           record={selectedRecord}
@@ -110,7 +220,7 @@ export function App() {
         />
       )}
 
-      {/* Quick Action / Command Modal */}
+      {/* Quick Action / Command Modal (For Review Queue & Release Requests) */}
       {activeActionModal && (
         <ActionModal
           actionData={activeActionModal}

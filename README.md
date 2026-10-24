@@ -1,70 +1,37 @@
-# FDR Rakshak — Security Deposit & FDR Management Portal
+# FDR SmartGuard — Fixed Deposit Receipt & Security Deposit Management Portal
 
 **AICTE Regulation Bureau, Ministry of Education, Government of India**  
-*Step 1: Frontend UI Foundation & Industrial Skeuomorphism Design System*
+*Step 2: Institution Management & FDR Repository Complete*
 
 ---
 
 ## Overview
 
-**FDR Rakshak** is an administrative regulatory dashboard built specifically for the AICTE Regulation Bureau to manage institutional Fixed Deposit Receipts (FDRs), verification queues, maturity milestones, renewals, and discharge release requests.
+**FDR SmartGuard** is an administrative regulatory dashboard built specifically for the AICTE Regulation Bureau to manage institutional Fixed Deposit Receipts (FDRs), verification queues, maturity milestones, renewals, and discharge release requests.
 
-In accordance with **Step 1: UI Foundation**, this phase focuses strictly on the visual architecture, administrative usability, responsive layout, and interaction physics. No backend, live database, OCR neural engine, or authentication has been connected yet; all displayed records and telemetry are mock data derived dynamically.
-
----
-
-## Design System: Industrial Skeuomorphism
-
-The application strictly implements the **Industrial Skeuomorphism** design specification:
-
-- **Color Tokens**:
-  - `chassis`: `#e0e5ec`
-  - `panel`: `#f0f2f5`
-  - `recessed`: `#d1d9e6`
-  - `text-primary`: `#2d3436`
-  - `text-muted`: `#4a5568`
-  - `accent`: `#ff4757` (Critical alerts & unrenewed overdue cases)
-  - `accent-orange`: `#ff6b35` (AICTE industrial action accent)
-  - `shadow`: `#babecc`
-  - `highlight`: `#ffffff`
-  - `deep-shadow`: `#a3b1c6`
-- **Typography**:
-  - **Inter**: General UI copy, headings, and labels.
-  - **JetBrains Mono**: Numerical values, dates, technical IDs, status metadata, and form inputs.
-- **Lighting & Physics**:
-  - Consistent top-left light source.
-  - Layered tactile panels with dual neumorphic shadows.
-  - Recessed input wells and elevated interactive cards.
-  - Embossed screw-head hardware rivets, ventilation slots, and illuminated LED status indicators (green, amber, red, blue).
-  - Pressed/active state button translation with inset bevels.
+In **Step 2**, two core functional modules were implemented:
+1. **Institution Management (`src/components/InstitutionManagement.jsx`)**: Searchable, filterable institutional directory, PID registration modal with strict validation, detail/dossier modal with in-place profile editing, associated FDR listing, and safe deletion guards.
+2. **FDR Repository (`src/components/FdrRepository.jsx`)**: Full repository table, multi-field search, status/institution/bank/maturity-date range filtering, column sorting, Add FDR modal with strict validation, Edit FDR modal preserving stable internal IDs, and integration with the shared FDR Dossier modal.
+3. **Shared Reactive Data Layer (`src/data/sampleFdrData.js` & `src/App.jsx`)**: Single source of truth for institutions and FDR records. Derived statistics, summary cards, Recharts visualizations, and institution metrics update immediately when records are created or edited.
 
 ---
 
-## Core Components Built
+## Architectural & Design Consistency
 
-| Component | Path | Description |
-|---|---|---|
-| **`Sidebar.jsx`** | `src/components/Sidebar.jsx` | Left sidebar with shield badge, 9 navigation items, desktop rail collapse, mobile drawer, and status LED. |
-| **`Header.jsx`** | `src/components/Header.jsx` | Breadcrumbs, current title, recessed search input, notification flyout with badge, and AICTE Administrator profile menu. |
-| **`StatCard.jsx`** | `src/components/StatCard.jsx` | Tactile hardware cards with corner screws, recessed icon wells, monospace metrics, and click-to-filter capability. |
-| **`FDRTable.jsx`** | `src/components/FDRTable.jsx` | Priority cases table with status filters (All, Verified, Pending, Discrepancy, Expiring Soon), priority filter, local search, sorting, and view dossier action. |
-| **`RecordDetailsModal.jsx`** | `src/components/RecordDetailsModal.jsx` | Official AICTE FDR dossier modal with bank details, lien status, physical custody location, OCR score, and action buttons. |
-| **`DashboardCharts.jsx`** | `src/components/DashboardCharts.jsx` | Recharts donut chart for status distribution & bar chart for upcoming maturity schedule with custom skeuomorphic tooltips. |
-| **`RecentActivity.jsx`** | `src/components/RecentActivity.jsx` | Live administrative audit trail feed with event LEDs. |
-| **`QuickActions.jsx`** | `src/components/QuickActions.jsx` | Fast command buttons for Register Institution, Upload FDR, Review Queue, and Release Requests. |
-| **`ActionModal.jsx`** | `src/components/ActionModal.jsx` | Interactive modal simulating intake workflows and queue processing. |
-| **`PlaceholderView.jsx`** | `src/components/PlaceholderView.jsx` | Contextual administrative placeholder screens for secondary navigation views. |
-| **`StatusBadge.jsx`** | `src/components/StatusBadge.jsx` | Recessed pills with illuminated LEDs (Verified, Pending, Discrepancy, Expiring Soon). |
+- **Design System**: Strict Industrial Skeuomorphism & Industrial Light aesthetic.
+- **Palette**: Chassis `#e0e5ec`, elevated panel `#f0f2f5`, recessed wells `#d1d9e6`, charcoal text `#2d3436`, slate muted text `#4a5568`, and industrial orange `#ff6b35`.
+- **Typography**: Inter for general administrative UI and JetBrains Mono for monetary values, dates, and technical identifiers.
+- **Hardware Accents**: Corner screw rivets, ventilation grilles, and illuminated status LEDs.
 
 ---
 
 ## How to Run the Application
 
-```bash
+```powershell
 # 1. Navigate to the project directory
 cd c:\Users\Harsh\Downloads\FDR_Rakshak
 
-# 2. Run the Vite development server
+# 2. Run the development server
 npm run dev
 
 # 3. Open in your browser
@@ -72,7 +39,7 @@ http://localhost:3001
 ```
 
 To build for production:
-```bash
+```powershell
 npm run build
 npm run preview
 ```

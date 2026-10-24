@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
   Legend
 } from 'recharts';
-import { UPCOMING_MATURITY_DATA } from '../data/sampleFdrData';
+import { UPCOMING_MATURITY_DATA, calculateMaturityChartData, formatINR } from '../data/sampleFdrData';
 
 export function DashboardCharts({ records = [] }) {
   // Dynamically calculate status distribution from records
@@ -19,6 +19,11 @@ export function DashboardCharts({ records = [] }) {
     acc[r.verificationStatus] = (acc[r.verificationStatus] || 0) + 1;
     return acc;
   }, {});
+
+  const dynamicMaturity = calculateMaturityChartData(records);
+  const maturityData = dynamicMaturity.length > 0 ? dynamicMaturity : UPCOMING_MATURITY_DATA;
+
+  const totalVaultAmount = records.reduce((sum, r) => sum + (Number(r.depositAmount) || 0), 0);
 
   const pieData = [
     { name: 'Verified', value: statusCounts['Verified'] || 0, color: '#2ed573' },
@@ -138,7 +143,7 @@ export function DashboardCharts({ records = [] }) {
         <div className="mt-4 h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={UPCOMING_MATURITY_DATA}
+              data={maturityData}
               margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
             >
               <XAxis
@@ -169,7 +174,9 @@ export function DashboardCharts({ records = [] }) {
         {/* Summary Footer */}
         <div className="mt-2 flex items-center justify-between text-xs font-mono pt-3 border-t border-[#d1d9e6]/70 text-text-muted">
           <span>Projected Lock-in Turnover</span>
-          <span className="text-accent-orange font-bold">Total: ₹4.20 Crore (10 FDRs)</span>
+          <span className="text-accent-orange font-bold">
+            Total: {formatINR(totalVaultAmount, true)} ({records.length} FDRs)
+          </span>
         </div>
       </div>
 
