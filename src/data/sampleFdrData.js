@@ -273,6 +273,33 @@ export const SAMPLE_FDR_RECORDS = [
     discrepancyNote: "5-year security deposit verified against state treasury bond protocol.",
     lastAudited: "2026-09-18",
     category: "Diploma Polytechnic"
+  },
+  {
+    id: "FDR-2024-8831",
+    reference: "FDR-AICTE-2024-8831",
+    institution: "Vidyalankar Institute of Technology",
+    institutionCode: "VIT-MH-077",
+    trust: "Vidyalankar Dnyanapeeth Trust",
+    state: "Maharashtra",
+    region: "WRO Mumbai",
+    depositAmount: 3500000,
+    currency: "INR",
+    interestRate: "7.25%",
+    issueDate: "2023-01-15",
+    maturityDate: "2028-01-15",
+    verificationStatus: "Compliant",
+    priority: "Low",
+    bankName: "State Bank of India",
+    branch: "Wadala West, Mumbai",
+    ifsc: "SBIN0001053",
+    certificateNo: "SBI-FDR-994102-MUM",
+    jointLienHolder: "Member Secretary AICTE & Principal VIT",
+    lienStatus: "Active Lien to AICTE",
+    ocrConfidence: 98.5,
+    physicalLocation: "Vault-02 / Shelf A-09 / Locker 24",
+    discrepancyNote: "Tripartite lien verified. Physical FDR lodged in AICTE safe custody vault.",
+    lastAudited: "2026-10-15",
+    category: "Technical Degree (UG/PG)"
   }
 ];
 
@@ -432,6 +459,21 @@ export const SAMPLE_INSTITUTIONS = [
     contactPerson: "Prof. Hitesh Patel",
     email: "principal@gtp.edu.in",
     phone: "+91 79 2630 1445"
+  },
+  {
+    id: "INST-VIT-MH-077",
+    name: "Vidyalankar Institute of Technology",
+    code: "VIT-MH-077",
+    pid: "1-4562019",
+    type: "Technical Degree (UG/PG)",
+    pincode: "400037",
+    state: "Maharashtra",
+    city: "Mumbai",
+    address: "Vidyalankar Educational Campus, Vidyalankar College Marg, Wadala East",
+    trust: "Vidyalankar Dnyanapeeth Trust",
+    contactPerson: "Dr. Sunil Patekar",
+    email: "principal@vit.edu.in",
+    phone: "+91 22 2416 1126"
   }
 ];
 
