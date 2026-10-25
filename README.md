@@ -1,4 +1,4 @@
-# FDR Rakshak (एफ.डी.आर. रक्षक)
+# FDR Rakshak
 
 **Statutory Security Deposit & Fixed Deposit Receipt Governance Bureau**  
 *All India Council for Technical Education (AICTE), Ministry of Education, Government of India*  
