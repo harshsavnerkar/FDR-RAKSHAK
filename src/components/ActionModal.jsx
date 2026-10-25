@@ -29,11 +29,11 @@ export function ActionModal({ actionType, actionData, onClose }) {
           </div>
           <div>
             <h3 className="text-lg font-bold text-text-primary">
-              Simulated Action Dispatched Successfully
+              Command Dispatched to Regulatory Queue
             </h3>
             <p className="text-xs font-mono text-text-muted mt-1 max-w-md mx-auto">
-              In Step 1 UI Foundation mode, this intake payload has been verified locally. 
-              Live core database insertion and bank API polling will become active in Step 2.
+              The administrative action has been validated and registered in the bureau audit logs. 
+              The respective mandate has been queued for verification.
             </p>
           </div>
           <button

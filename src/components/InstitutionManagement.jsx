@@ -27,6 +27,7 @@ import {
   ALL_INDIAN_STATES_AND_UTS,
   detectLocationFromPinCode
 } from '../data/sampleFdrData';
+import { exportInstitutionsToCsv } from '../utils/exportUtils';
 
 export function InstitutionManagement({
   institutions = [],
@@ -173,6 +174,14 @@ export function InstitutionManagement({
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => exportInstitutionsToCsv(processedInstitutions, 'AICTE_Institutional_Registry.csv')}
+              className="skeuo-panel px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 hover:border-accent-orange text-text-primary shadow-sm hover:text-accent-orange transition-colors"
+              title="Export filtered institutions to CSV"
+            >
+              <FileText className="w-4 h-4 text-accent-orange" />
+              <span>Export Registry</span>
+            </button>
             <button
               onClick={() => setShowRegisterModal(true)}
               className="skeuo-btn-accent px-4 py-2.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 shadow-md"

@@ -10,6 +10,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001/api'
 async function request(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   const config = {
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...options.headers
@@ -23,6 +24,11 @@ async function request(endpoint, options = {}) {
     const data = isJson ? await res.json() : await res.text();
 
     if (!res.ok) {
+      if (res.status === 401 && !endpoint.startsWith('/auth/')) {
+        window.dispatchEvent(new CustomEvent('fdr-session-expired', {
+          detail: { message: 'Your administrative session has expired or was revoked. Please authenticate again.' }
+        }));
+      }
       const errorMsg = data?.detail || data?.message || (typeof data === 'string' ? data : `HTTP ${res.status}: ${res.statusText}`);
       const err = new Error(errorMsg);
       err.status = res.status;
@@ -115,13 +121,19 @@ export const api = {
     try {
       const res = await fetch(url, {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'include'
       });
 
       const isJson = res.headers.get('content-type')?.includes('application/json');
       const data = isJson ? await res.json() : await res.text();
 
       if (!res.ok) {
+        if (res.status === 401) {
+          window.dispatchEvent(new CustomEvent('fdr-session-expired', {
+            detail: { message: 'Your administrative session has expired. Please authenticate again.' }
+          }));
+        }
         const errorMsg = data?.detail || data?.message || (typeof data === 'string' ? data : `Upload error (HTTP ${res.status})`);
         const err = new Error(errorMsg);
         err.status = res.status;
@@ -223,6 +235,38 @@ export const api = {
     method: 'POST',
     body: JSON.stringify(payload)
   }),
+
+  // Authentication & Security (Step 8)
+  login: (credentials) => request('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(credentials)
+  }),
+
+  logout: () => request('/auth/logout', {
+    method: 'POST'
+  }),
+
+  checkSession: () => request('/auth/session'),
+
+  initiatePasswordRecovery: (data) => request('/auth/recover-initiate', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+
+  resetPassword: (data) => request('/auth/recover-reset', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+
+  // Security Audit Logs
+  getAuditLogs: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.limit) query.append('limit', params.limit);
+    if (params.offset) query.append('offset', params.offset);
+    if (params.eventType) query.append('event_type', params.eventType);
+    const qs = query.toString();
+    return request(`/audit-logs${qs ? `?${qs}` : ''}`);
+  },
 
   // Seed
   seedDatabase: () => request('/seed', { method: 'POST' })

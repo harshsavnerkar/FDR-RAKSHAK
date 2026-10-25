@@ -84,6 +84,11 @@ export function DocumentUploadOcr({
   const [submitSuccess, setSubmitSuccess] = useState(null);
   const [submitError, setSubmitError] = useState(null);
 
+  // Document Preview Modal state
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewBlobUrl, setPreviewBlobUrl] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
   // Fetch OCR Engine capabilities on mount
   useEffect(() => {
     async function fetchStatus() {
@@ -206,11 +211,32 @@ export function DocumentUploadOcr({
     try {
       const response = await api.uploadDocument(selectedFile);
       setOcrResult(response);
+      setPreviewBlobUrl(null); // Reset preview url for new document
     } catch (err) {
       console.error('Document scan error:', err);
       setUploadError(err.message || 'Failed to process document scan.');
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleOpenPreview = async () => {
+    if (!ocrResult?.documentId) return;
+    setShowPreviewModal(true);
+    if (!previewBlobUrl) {
+      setPreviewLoading(true);
+      try {
+        const previewUrl = api.getDocumentPreviewUrl(ocrResult.documentId);
+        const res = await fetch(previewUrl, { credentials: 'include' });
+        if (!res.ok) throw new Error(`Preview retrieval failed (HTTP ${res.status})`);
+        const blob = await res.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        setPreviewBlobUrl(objectUrl);
+      } catch (err) {
+        console.warn('Document preview error:', err);
+      } finally {
+        setPreviewLoading(false);
+      }
     }
   };
 
@@ -546,6 +572,17 @@ export function DocumentUploadOcr({
                   <span className={`font-bold ${ocrResult.isComplete ? 'text-[#1b7943]' : 'text-[#b7791f]'}`}>
                     {ocrResult.isComplete ? 'All Mandatory Extracted' : 'Missing Fields Detected'}
                   </span>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={handleOpenPreview}
+                    className="w-full py-2 px-3 rounded-lg skeuo-btn text-xs font-mono font-bold flex items-center justify-center gap-2 text-accent-cyan hover:text-accent-cyan/80 transition-colors shadow-sm"
+                  >
+                    <Eye className="w-4 h-4 text-accent-cyan" />
+                    <span>Preview Document Scan</span>
+                  </button>
                 </div>
               </div>
 
@@ -1028,6 +1065,68 @@ export function DocumentUploadOcr({
                 </div>
 
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Scan In-Browser Preview Modal */}
+      {showPreviewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="skeuo-panel-elevated w-full max-w-4xl p-6 rounded-2xl relative shadow-skeuo-modal max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between pb-4 border-b border-[#d1d9e6]">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-accent-cyan" />
+                <h3 className="text-sm font-bold text-text-primary font-mono">
+                  Document Preview: {ocrResult?.originalFilename}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPreviewModal(false)}
+                className="skeuo-btn p-1.5 rounded-lg text-text-muted hover:text-text-primary"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-auto my-4 flex items-center justify-center min-h-[400px] skeuo-recessed rounded-xl p-4">
+              {previewLoading ? (
+                <div className="flex flex-col items-center gap-2 text-xs font-mono text-text-muted">
+                  <RefreshCw className="w-6 h-6 animate-spin text-accent-cyan" />
+                  <span>Loading secure document preview...</span>
+                </div>
+              ) : previewBlobUrl ? (
+                selectedFile?.type?.includes('pdf') || ocrResult?.originalFilename?.toLowerCase().endsWith('.pdf') ? (
+                  <iframe
+                    src={previewBlobUrl}
+                    title="Document Scan Preview"
+                    className="w-full h-[65vh] rounded-lg border border-[#babecc]"
+                  />
+                ) : (
+                  <img
+                    src={previewBlobUrl}
+                    alt="Document Scan Preview"
+                    className="max-h-[65vh] object-contain rounded-lg shadow-sm"
+                  />
+                )
+              ) : (
+                <div className="text-xs font-mono text-[#d63031] flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Unable to render document preview. Document may be restricted or unavailable.</span>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-[#d1d9e6] flex items-center justify-between text-xs font-mono">
+              <span className="text-text-muted">Protected Regulatory Document • Server-Side Session Verified</span>
+              <button
+                type="button"
+                onClick={() => setShowPreviewModal(false)}
+                className="skeuo-btn px-4 py-2 rounded-xl text-xs font-bold text-text-primary"
+              >
+                Close Preview
+              </button>
             </div>
           </div>
         </div>

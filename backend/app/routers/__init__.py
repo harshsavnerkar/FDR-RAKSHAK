@@ -5,6 +5,8 @@ from app.routers.documents import router as documents_router
 from app.routers.compliance import router as compliance_router
 from app.routers.risk import router as risk_router
 from app.routers.workflows import router as workflows_router
+from app.routers.auth import router as auth_router
+from app.routers.audit_logs import router as audit_logs_router
 
 __all__ = [
     "institutions_router",
@@ -13,5 +15,7 @@ __all__ = [
     "documents_router",
     "compliance_router",
     "risk_router",
-    "workflows_router"
+    "workflows_router",
+    "auth_router",
+    "audit_logs_router"
 ]

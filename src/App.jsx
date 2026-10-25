@@ -7,14 +7,23 @@ import { FdrRepository } from './components/FdrRepository';
 import { DocumentUploadOcr } from './components/DocumentUploadOcr';
 import { RenewalsMaturityPage } from './components/RenewalsMaturityPage';
 import { ReleaseRequestsView } from './components/ReleaseRequestsView';
+import { AuditTrailView } from './components/AuditTrailView';
+import { ReportsAnalyticsView } from './components/ReportsAnalyticsView';
+import { SettingsView } from './components/SettingsView';
 import { PlaceholderView } from './components/PlaceholderView';
 import { RecordDetailsModal } from './components/RecordDetailsModal';
 import { ActionModal } from './components/ActionModal';
+import { LoginView } from './components/LoginView';
 import { SAMPLE_FDR_RECORDS, SAMPLE_INSTITUTIONS } from './data/sampleFdrData';
-import { Shield, RefreshCw, AlertCircle, Database } from 'lucide-react';
+import { Shield, RefreshCw, AlertCircle, Database, Lock } from 'lucide-react';
 import { api } from './services/api';
 
 export function App() {
+  // Authentication & Session State (Step 8)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentAdmin, setCurrentAdmin] = useState(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
+
   const [activeNav, setActiveNav] = useState("Overview");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -59,7 +68,11 @@ export function App() {
         setApiError(null);
       }
     } catch (err) {
-      console.warn("Backend API sync failed, operating in fallback mode:", err);
+      console.warn("Backend API sync failed:", err);
+      if (err.status === 401) {
+        setIsAuthenticated(false);
+        setCurrentAdmin(null);
+      }
       setBackendConnected(false);
       setApiError(err.message);
     } finally {
@@ -67,9 +80,68 @@ export function App() {
     }
   }, []);
 
+  // Check existing session on mount
   useEffect(() => {
-    loadDatabaseData(true);
+    async function verifyInitialSession() {
+      setIsAuthChecking(true);
+      try {
+        const session = await api.checkSession();
+        if (session && (session.authenticated || session.status === 'success')) {
+          const adminUser = session.admin || { username: session.username, email: session.email };
+          setIsAuthenticated(true);
+          setCurrentAdmin(adminUser);
+          await loadDatabaseData(true);
+        } else {
+          setIsAuthenticated(false);
+          setCurrentAdmin(null);
+        }
+      } catch (err) {
+        console.info("No active session found or unauthorized:", err?.message);
+        setIsAuthenticated(false);
+        setCurrentAdmin(null);
+      } finally {
+        setIsAuthChecking(false);
+      }
+    }
+
+    verifyInitialSession();
   }, [loadDatabaseData]);
+
+  // Listen for global session expiration events from API layer
+  useEffect(() => {
+    const handleSessionExpired = (e) => {
+      setIsAuthenticated(false);
+      setCurrentAdmin(null);
+      setFdrRecords([]);
+      setInstitutions([]);
+      showToast(e.detail?.message || 'Your session has expired. Please authenticate.', true);
+    };
+    window.addEventListener('fdr-session-expired', handleSessionExpired);
+    return () => window.removeEventListener('fdr-session-expired', handleSessionExpired);
+  }, []);
+
+  // Handle successful login from LoginView
+  const handleLoginSuccess = (admin) => {
+    setIsAuthenticated(true);
+    setCurrentAdmin(admin);
+    showToast(`Welcome, Administrator ${admin?.username || ''}. Vault unlocked.`);
+    loadDatabaseData(true);
+  };
+
+  // Handle sign out / lock terminal
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+    } catch (err) {
+      console.warn("Logout notification error:", err);
+    } finally {
+      setIsAuthenticated(false);
+      setCurrentAdmin(null);
+      setFdrRecords([]);
+      setInstitutions([]);
+      showToast('Administrative session locked. Authentication required.');
+    }
+  };
 
   const handleActionTrigger = (actionName, record) => {
     if (actionName === 'Workflow Updated') {
@@ -243,6 +315,26 @@ export function App() {
     }
   };
 
+  // Render Loading / Authenticating Screen
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen bg-chassis flex flex-col items-center justify-center p-6 text-text-primary">
+        <div className="skeuo-panel-elevated p-8 rounded-2xl flex flex-col items-center gap-4 border border-chassis shadow-skeuo-modal">
+          <RefreshCw className="w-8 h-8 text-accent-orange animate-spin" />
+          <div className="text-center font-mono">
+            <div className="text-sm font-bold">AICTE Regulation Bureau Vault</div>
+            <div className="text-xs text-text-muted mt-1">Verifying administrator session & security credentials...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Render Industrial Login Screen if unauthenticated
+  if (!isAuthenticated) {
+    return <LoginView onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-chassis text-text-primary">
       
@@ -285,6 +377,8 @@ export function App() {
           }}
           fdrRecords={fdrRecords}
           institutions={institutions}
+          currentAdmin={currentAdmin}
+          onLogout={handleLogout}
         />
 
         {/* Scrollable Main View */}
@@ -394,12 +488,36 @@ export function App() {
             />
           )}
 
+          {activeNav === "Audit Trail" && (
+            <AuditTrailView
+              onReturnToOverview={() => setActiveNav("Overview")}
+            />
+          )}
+
+          {activeNav === "Reports & Analytics" && (
+            <ReportsAnalyticsView
+              records={fdrRecords}
+              institutions={institutions}
+              onReturnToOverview={() => setActiveNav("Overview")}
+            />
+          )}
+
+          {activeNav === "Settings" && (
+            <SettingsView
+              currentAdmin={currentAdmin}
+              onReturnToOverview={() => setActiveNav("Overview")}
+            />
+          )}
+
           {activeNav !== "Overview" && 
            activeNav !== "Institutions" && 
            activeNav !== "FDR Repository" && 
            activeNav !== "AI Verification" && 
            activeNav !== "Renewals & Maturity" && 
-           activeNav !== "Release Requests" && (
+           activeNav !== "Release Requests" && 
+           activeNav !== "Audit Trail" && 
+           activeNav !== "Reports & Analytics" && 
+           activeNav !== "Settings" && (
             <PlaceholderView
               viewName={activeNav}
               onReturnToOverview={() => setActiveNav("Overview")}

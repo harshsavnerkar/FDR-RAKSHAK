@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { StatusBadge, PriorityBadge } from './StatusBadge';
 import { formatINR, formatDate } from '../data/sampleFdrData';
+import { exportFdrsToCsv } from '../utils/exportUtils';
 
 export function FDRTable({ records = [], onViewDetails, initialStatusFilter = "All", externalSearchTerm = "" }) {
   const [searchTerm, setSearchTerm] = useState(externalSearchTerm);
@@ -136,9 +137,9 @@ export function FDRTable({ records = [], onViewDetails, initialStatusFilter = "A
             Showing <strong className="text-text-primary">{filteredRecords.length}</strong> of {records.length} records
           </span>
           <button
-            onClick={() => alert("Demo Mode: Official CSV/XLS export generated with Bureau digital seal.")}
+            onClick={() => exportFdrsToCsv(filteredRecords, 'AICTE_Priority_FDR_Audit_Sheet.csv')}
             className="skeuo-btn px-3 py-1.5 rounded-lg text-text-muted hover:text-text-primary flex items-center gap-1.5"
-            title="Export CSV"
+            title="Export filtered priority cases as CSV"
           >
             <FileSpreadsheet className="w-3.5 h-3.5 text-accent-orange" />
             <span className="hidden sm:inline">Export Audit Sheet</span>

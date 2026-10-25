@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   FolderArchive,
   Search,
@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { StatusBadge, PriorityBadge, MaturityBadge, LifecycleBadge } from './StatusBadge';
 import { formatINR, formatDate } from '../data/sampleFdrData';
+import { exportFdrsToCsv } from '../utils/exportUtils';
 import { api } from '../services/api';
 
 export function FdrRepository({
@@ -320,6 +321,14 @@ export function FdrRepository({
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => exportFdrsToCsv(filteredRecords, 'AICTE_Vaulted_FDR_Registry.csv')}
+              className="skeuo-panel px-3.5 py-2.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 hover:border-accent-orange text-text-primary shadow-sm hover:text-accent-orange transition-colors"
+              title="Export filtered FDR records to CSV"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-accent-orange" />
+              <span>Export CSV</span>
+            </button>
             {onNavigateToOcr && (
               <button
                 onClick={onNavigateToOcr}

@@ -30,7 +30,9 @@ export function Header({
   onSelectNav,
   fdrRecords = [],
   institutions = [],
-  onSelectFdr
+  onSelectFdr,
+  currentAdmin,
+  onLogout
 }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -317,12 +319,12 @@ export function Header({
             >
               {/* Avatar recessed container */}
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-accent-orange/15 text-accent-orange flex items-center justify-center font-bold font-mono text-xs border border-accent-orange/30">
-                RK
+                {currentAdmin?.username ? currentAdmin.username.slice(0, 2).toUpperCase() : 'AD'}
               </div>
               
               <div className="text-left hidden md:block">
                 <div className="text-xs font-bold text-text-primary leading-tight">
-                  Dr. R. K. Sharma
+                  {currentAdmin?.username || 'aicte_admin'}
                 </div>
                 <div className="text-[10px] font-mono text-text-muted flex items-center gap-1">
                   <span>AICTE Administrator</span>
@@ -339,19 +341,19 @@ export function Header({
                 <div className="pb-3 border-b border-[#d1d9e6]">
                   <div className="flex items-center gap-2.5">
                     <div className="w-10 h-10 rounded-full bg-accent-orange/20 text-accent-orange flex items-center justify-center font-bold text-sm border border-accent-orange/40">
-                      RK
+                      {currentAdmin?.username ? currentAdmin.username.slice(0, 2).toUpperCase() : 'AD'}
                     </div>
                     <div>
                       <div className="font-bold text-sm text-text-primary">
-                        Dr. R. K. Sharma
+                        {currentAdmin?.username || 'aicte_admin'}
                       </div>
                       <div className="text-xs text-text-muted">
-                        Director, Regulation Bureau
+                        Regulation Bureau Master
                       </div>
                     </div>
                   </div>
                   <div className="mt-2.5 px-2 py-1 rounded skeuo-recessed text-[11px] font-mono text-text-muted">
-                    ID: AICTE-HQ-REG-0994
+                    Session: {currentAdmin?.email || 'admin@aicte-india.org'}
                   </div>
                 </div>
 
@@ -374,7 +376,7 @@ export function Header({
                     className="w-full text-left px-3 py-2 rounded-md hover:bg-panel flex items-center gap-2 text-text-primary"
                   >
                     <FileText className="w-4 h-4 text-text-muted" />
-                    <span>My Session Audit Key</span>
+                    <span>Security Audit Logs</span>
                   </button>
                   <a
                     href="https://www.aicte-india.org"
@@ -391,12 +393,12 @@ export function Header({
                   <button
                     onClick={() => {
                       setShowProfileMenu(false);
-                      alert("Demo mode: Session locks are managed by AICTE SSO gateway.");
+                      if (onLogout) onLogout();
                     }}
-                    className="w-full text-left px-3 py-2 rounded-md text-accent flex items-center gap-2 text-xs font-semibold hover:bg-accent/10"
+                    className="w-full text-left px-3 py-2 rounded-md text-[#d63031] flex items-center gap-2 text-xs font-semibold hover:bg-[#ffebee]/80 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
-                    <span>Lock Administrative Terminal</span>
+                    <span>Sign Out / Lock Terminal</span>
                   </button>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, status
+from fastapi import FastAPI, Depends, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -13,9 +13,13 @@ from app.routers import (
     documents_router,
     compliance_router,
     risk_router,
-    workflows_router
+    workflows_router,
+    auth_router,
+    audit_logs_router
 )
+from app.dependencies.auth import get_current_admin
 from app.services.seed_data import seed_database
+from app.services.auth_service import ensure_initial_admin
 
 # Configure structured logging
 logging.basicConfig(
@@ -26,7 +30,7 @@ logger = logging.getLogger("fdr_smartguard.api")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifecycle manager: verifies PostgreSQL connectivity and guarantees table schemas."""
+    """Lifecycle manager: verifies PostgreSQL connectivity, table schemas, and administrator initialization."""
     logger.info("Initializing FDR SmartGuard backend services...")
     try:
         # Create database tables if they do not exist
@@ -37,17 +41,19 @@ async def lifespan(app: FastAPI):
         with engine.begin() as conn:
             conn.execute(text("ALTER TABLE fdrs ADD COLUMN IF NOT EXISTS lifecycle_status VARCHAR(50) DEFAULT 'ACTIVE' NOT NULL;"))
 
-        # Seed initial sample data if empty
-        with engine.begin() as conn:
-            inst_count = conn.execute(text("SELECT count(*) FROM institutions")).scalar()
+        from app.database import SessionLocal
+        with SessionLocal() as db:
+            # Seed initial institutional sample data if empty
+            inst_count = db.execute(text("SELECT count(*) FROM institutions")).scalar()
             if inst_count == 0:
                 logger.info("Database empty on startup; seeding initial institutional records...")
-                from app.database import SessionLocal
-                with SessionLocal() as db:
-                    seed_database(db)
-                    logger.info("Initial seed completed.")
+                seed_database(db)
+                logger.info("Initial seed completed.")
             else:
                 logger.info(f"Database contains {inst_count} existing institution records; preserving data.")
+
+            # Ensure initial administrator exists in PostgreSQL
+            ensure_initial_admin(db)
     except Exception as exc:
         logger.error(f"Critical error during database initialization: {exc}")
         # Re-raise so server doesn't pretend to be healthy if DB failed
@@ -63,6 +69,17 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Security Response Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Injects standard regulatory security headers on all responses."""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
 # Narrow CORS configuration for frontend
 app.add_middleware(
     CORSMiddleware,
@@ -72,14 +89,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Attach domain routers
-app.include_router(institutions_router)
-app.include_router(fdrs_router)
-app.include_router(dashboard_router)
-app.include_router(documents_router)
-app.include_router(compliance_router)
-app.include_router(risk_router)
-app.include_router(workflows_router)
+# Public Authentication Router
+app.include_router(auth_router)
+
+# Protected Domain Routers (strictly require valid administrator session)
+auth_dependency = [Depends(get_current_admin)]
+app.include_router(institutions_router, dependencies=auth_dependency)
+app.include_router(fdrs_router, dependencies=auth_dependency)
+app.include_router(dashboard_router, dependencies=auth_dependency)
+app.include_router(documents_router, dependencies=auth_dependency)
+app.include_router(compliance_router, dependencies=auth_dependency)
+app.include_router(risk_router, dependencies=auth_dependency)
+app.include_router(workflows_router, dependencies=auth_dependency)
+app.include_router(audit_logs_router, dependencies=auth_dependency)
 
 @app.get("/api/health", tags=["Health"])
 def health_check(db: Session = Depends(get_db)):
@@ -100,7 +122,7 @@ def health_check(db: Session = Depends(get_db)):
             "detail": str(exc)
         }
 
-@app.post("/api/seed", tags=["Administration"], status_code=status.HTTP_200_OK)
+@app.post("/api/seed", tags=["Administration"], status_code=status.HTTP_200_OK, dependencies=auth_dependency)
 def trigger_seed(db: Session = Depends(get_db)):
     """Idempotently seeds or refreshes the 10 demo institutional and FDR records."""
     return seed_database(db)

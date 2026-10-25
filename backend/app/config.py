@@ -47,6 +47,35 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8001"))
 
+# Authentication & Session Security Configuration
+SESSION_COOKIE_NAME = os.getenv("SESSION_COOKIE_NAME", "fdr_session_id")
+SESSION_MAX_AGE_SECONDS = int(os.getenv("SESSION_MAX_AGE_SECONDS", 86400))  # 24 hours
+
+_raw_cookie_secure = os.getenv("SESSION_COOKIE_SECURE")
+if _raw_cookie_secure is not None:
+    SESSION_COOKIE_SECURE = _raw_cookie_secure.lower() in ("true", "1", "yes")
+else:
+    # Automatically enforce Secure=True in production; allow HTTP in development
+    SESSION_COOKIE_SECURE = (ENVIRONMENT == "production")
+
+SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "lax")
+
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "aicte_admin")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@aicte-india.org")
+
+_raw_initial_password = os.getenv("ADMIN_INITIAL_PASSWORD")
+if _raw_initial_password and _raw_initial_password.strip():
+    ADMIN_INITIAL_PASSWORD = _raw_initial_password.strip()
+elif ENVIRONMENT != "production":
+    ADMIN_INITIAL_PASSWORD = "AICTE@Admin2026!"
+else:
+    # In production, require explicit environment variable for initial provisioning; no hardcoded fallback
+    ADMIN_INITIAL_PASSWORD = None
+
+MAX_FAILED_LOGIN_ATTEMPTS = int(os.getenv("MAX_FAILED_LOGIN_ATTEMPTS", 5))
+ACCOUNT_LOCKOUT_MINUTES = int(os.getenv("ACCOUNT_LOCKOUT_MINUTES", 15))
+RECOVERY_TOKEN_EXPIRE_MINUTES = int(os.getenv("RECOVERY_TOKEN_EXPIRE_MINUTES", 15))
+
 # Upload Storage & Security Configuration
 BACKEND_ROOT = Path(__file__).resolve().parent.parent
 UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", BACKEND_ROOT / "uploads"))
