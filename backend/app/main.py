@@ -26,12 +26,12 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
-logger = logging.getLogger("fdr_smartguard.api")
+logger = logging.getLogger("fdr_rakshak.api")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifecycle manager: verifies PostgreSQL connectivity, table schemas, and administrator initialization."""
-    logger.info("Initializing FDR SmartGuard backend services...")
+    logger.info("Initializing FDR Rakshak backend services...")
     try:
         # Create database tables if they do not exist
         Base.metadata.create_all(bind=engine)
@@ -60,10 +60,10 @@ async def lifespan(app: FastAPI):
         raise exc
 
     yield
-    logger.info("Shutting down FDR SmartGuard backend services.")
+    logger.info("Shutting down FDR Rakshak backend services.")
 
 app = FastAPI(
-    title="FDR SmartGuard — AICTE Security Deposit Governance Bureau API",
+    title="FDR Rakshak — AICTE Security Deposit Governance Bureau API",
     description="Statutory Security Deposit and Fixed Deposit Receipt (FDR) Management Backend",
     version="1.0.0",
     lifespan=lifespan
@@ -110,27 +110,27 @@ def health_check(db: Session = Depends(get_db)):
         db.execute(text("SELECT 1"))
         return {
             "status": "healthy",
-            "service": "fdr-smartguard-api",
+            "service": "fdr-rakshak-api",
             "database": "connected",
             "environment": ENVIRONMENT
         }
     except Exception as exc:
         return {
             "status": "degraded",
-            "service": "fdr-smartguard-api",
+            "service": "fdr-rakshak-api",
             "database": "error",
             "detail": str(exc)
         }
 
 @app.post("/api/seed", tags=["Administration"], status_code=status.HTTP_200_OK, dependencies=auth_dependency)
 def trigger_seed(db: Session = Depends(get_db)):
-    """Idempotently seeds or refreshes the 10 demo institutional and FDR records."""
+    """Idempotently seeds or refreshes institutional and FDR records."""
     return seed_database(db)
 
 @app.get("/", tags=["Root"])
 def root():
     return {
-        "portal": "FDR SmartGuard / FDR Rakshak",
+        "portal": "FDR Rakshak",
         "bureau": "AICTE Regulation Bureau New Delhi",
         "docs": "/docs",
         "health": "/api/health"

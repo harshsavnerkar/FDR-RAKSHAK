@@ -13,7 +13,7 @@ from app.schemas.compliance import (
     ComplianceConfig
 )
 
-logger = logging.getLogger("fdr_smartguard.compliance_router")
+logger = logging.getLogger("fdr_rakshak.compliance_router")
 
 router = APIRouter(prefix="/api/compliance", tags=["Compliance & Discrepancy Engine"])
 

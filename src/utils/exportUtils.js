@@ -17,7 +17,7 @@ function sanitizeCsvCell(val) {
   return `"${str.replace(/"/g, '""')}"`;
 }
 
-export function exportFdrsToCsv(records, filename = 'FDR_SmartGuard_Vault_Ledger.csv') {
+export function exportFdrsToCsv(records, filename = 'FDR_Rakshak_Vault_Ledger.csv') {
   if (!records || !records.length) {
     alert('No records available to export.');
     return;

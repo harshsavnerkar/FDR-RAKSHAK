@@ -22,7 +22,7 @@ from app.config import (
     RECOVERY_TOKEN_EXPIRE_MINUTES
 )
 
-logger = logging.getLogger("fdr_smartguard.auth_service")
+logger = logging.getLogger("fdr_rakshak.auth_service")
 
 # Argon2id password hasher with secure memory-hardened parameters
 ph = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=4)

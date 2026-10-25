@@ -7,7 +7,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("fdr_smartguard.ocr")
+logger = logging.getLogger("fdr_rakshak.ocr")
 
 # Common Tesseract paths on Windows
 COMMON_TESSERACT_PATHS = [

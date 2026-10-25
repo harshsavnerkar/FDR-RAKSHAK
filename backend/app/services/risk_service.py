@@ -19,7 +19,7 @@ from app.schemas.risk import (
 from app.schemas.compliance import FDRComplianceReport, ComplianceConfig
 from app.services import compliance_service
 
-logger = logging.getLogger("fdr_smartguard.risk_service")
+logger = logging.getLogger("fdr_rakshak.risk_service")
 
 # Priority ranking weights for sorting
 PRIORITY_ORDER = {

@@ -9,7 +9,7 @@ from app.database import SessionLocal
 from app.models.institution import Institution
 from app.models.fdr import FDR
 
-logger = logging.getLogger("fdr_smartguard.seed")
+logger = logging.getLogger("fdr_rakshak.seed")
 
 def parse_date(date_str: str | None) -> date | None:
     if not date_str:

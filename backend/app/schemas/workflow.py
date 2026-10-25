@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 WORKFLOW_STATUTORY_DISCLAIMER = (
-    "ADMINISTRATIVE DISCLAIMER: FDR SmartGuard lifecycle workflows record and govern internal "
+    "ADMINISTRATIVE DISCLAIMER: FDR Rakshak lifecycle workflows record and govern internal "
     "AICTE regulatory decisions (renewals, replacements, lien release endorsements). The system "
     "does not execute interbank electronic funds transfers, auto-debits, or autonomous bank lien releases."
 )

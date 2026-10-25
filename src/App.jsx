@@ -319,10 +319,16 @@ export function App() {
   if (isAuthChecking) {
     return (
       <div className="min-h-screen bg-chassis flex flex-col items-center justify-center p-6 text-text-primary">
-        <div className="skeuo-panel-elevated p-8 rounded-2xl flex flex-col items-center gap-4 border border-chassis shadow-skeuo-modal">
-          <RefreshCw className="w-8 h-8 text-accent-orange animate-spin" />
+        <div className="skeuo-panel-elevated p-8 rounded-3xl flex flex-col items-center gap-4 border border-chassis shadow-skeuo-modal max-w-sm w-full text-center">
+          <div className="w-16 h-16 rounded-2xl skeuo-panel-elevated bg-white p-1 border border-[#d1d9e6] flex items-center justify-center shadow-md overflow-hidden">
+            <img src="/logo.png" alt="FDR Rakshak" className="w-full h-full object-contain" />
+          </div>
+          <div className="flex items-center gap-2 text-accent-orange font-mono text-xs font-semibold">
+            <RefreshCw className="w-4 h-4 animate-spin" />
+            <span>Verifying Session...</span>
+          </div>
           <div className="text-center font-mono">
-            <div className="text-sm font-bold">AICTE Regulation Bureau Vault</div>
+            <div className="text-sm font-bold">FDR Rakshak — AICTE Vault</div>
             <div className="text-xs text-text-muted mt-1">Verifying administrator session & security credentials...</div>
           </div>
         </div>
@@ -529,7 +535,7 @@ export function App() {
           <footer className="mt-8 pt-6 pb-4 border-t border-[#d1d9e6]/70 text-xs font-mono text-text-muted flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-accent-orange" />
-              <span>FDR SmartGuard &copy; 2026 AICTE Regulation Bureau, Ministry of Education, Govt. of India</span>
+              <span>FDR Rakshak &copy; 2026 AICTE Regulation Bureau, Ministry of Education, Govt. of India</span>
             </div>
             <div className="flex items-center gap-3 text-[11px]">
               <span className="flex items-center gap-1.5">

@@ -58,9 +58,9 @@ export function Sidebar({
         <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#d1d9e6]/80 px-1 pt-1">
           <div className="flex items-center gap-3 overflow-hidden">
             
-            {/* Skeuomorphic Shield Icon Housing */}
-            <div className="w-10 h-10 rounded-xl skeuo-btn-accent flex items-center justify-center flex-shrink-0 shadow-md">
-              <Shield className="w-5 h-5 text-white" />
+            {/* Official FDR Rakshak Logo Housing */}
+            <div className="w-10 h-10 rounded-xl skeuo-panel-elevated bg-white p-1 border border-[#d1d9e6] flex items-center justify-center flex-shrink-0 shadow-sm overflow-hidden">
+              <img src="/logo.png" alt="FDR Rakshak" className="w-full h-full object-contain" />
             </div>
 
             {/* Brand Title (hidden if collapsed) */}
@@ -68,7 +68,7 @@ export function Sidebar({
               <div className="min-w-0 transition-opacity duration-200">
                 <div className="flex items-center gap-1.5">
                   <span className="font-extrabold text-sm tracking-tight text-text-primary uppercase">
-                    FDR SmartGuard
+                    FDR Rakshak
                   </span>
                   <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-accent-orange/20 text-accent-orange border border-accent-orange/40">
                     BUREAU

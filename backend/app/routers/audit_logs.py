@@ -9,7 +9,7 @@ from app.models.audit_log import SecurityAuditLog
 from app.schemas.auth import SecurityAuditLogOut
 from app.dependencies.auth import get_current_admin
 
-logger = logging.getLogger("fdr_smartguard.audit_logs_router")
+logger = logging.getLogger("fdr_rakshak.audit_logs_router")
 
 router = APIRouter(prefix="/api/audit-logs", tags=["Persistent Security Audit Ledger"])
 

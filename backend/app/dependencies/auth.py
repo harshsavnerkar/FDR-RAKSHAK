@@ -9,7 +9,7 @@ from app.models.admin import AdminUser
 from app.models.session import AdminSession
 from app.services import auth_service
 
-logger = logging.getLogger("fdr_smartguard.auth_dependency")
+logger = logging.getLogger("fdr_rakshak.auth_dependency")
 
 def get_session_token_from_request(
     request: Request

@@ -129,15 +129,15 @@ export function LoginView({ onLoginSuccess }) {
       {/* Top Header / Ministry Bar */}
       <div className="w-full max-w-4xl flex items-center justify-between border-b border-[#d1d9e6]/80 pb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl skeuo-panel-elevated flex items-center justify-center text-accent-orange border border-accent-orange/30 shadow-sm">
-            <Shield className="w-6 h-6" />
+          <div className="w-11 h-11 rounded-xl skeuo-panel-elevated bg-white p-1 border border-[#d1d9e6] flex items-center justify-center shadow-sm overflow-hidden">
+            <img src="/logo.png" alt="FDR Rakshak Logo" className="w-full h-full object-contain" />
           </div>
           <div>
             <div className="text-xs font-mono font-bold tracking-wider text-accent-orange uppercase">
               All India Council for Technical Education
             </div>
             <div className="text-sm font-bold text-text-primary">
-              Regulation Bureau — FDR SmartGuard Vault
+              Regulation Bureau — FDR Rakshak Vault
             </div>
           </div>
         </div>
@@ -161,8 +161,8 @@ export function LoginView({ onLoginSuccess }) {
           <div className="absolute bottom-3 right-3 w-2.5 h-2.5 rounded-full skeuo-recessed border border-[#babecc]" />
 
           <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl skeuo-recessed border border-recessed text-accent-orange mb-3">
-              <Lock className="w-7 h-7" />
+            <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl skeuo-panel-elevated bg-white p-2 border border-[#d1d9e6] shadow-md mb-3 overflow-hidden">
+              <img src="/logo.png" alt="FDR Rakshak" className="w-full h-full object-contain" />
             </div>
             <h2 className="text-xl font-bold text-text-primary tracking-tight">
               Administrative Authentication
@@ -340,7 +340,7 @@ export function LoginView({ onLoginSuccess }) {
             {recoveryStep === 1 ? (
               <form onSubmit={handleInitiateRecovery} className="space-y-4">
                 <p className="text-xs text-text-muted leading-relaxed">
-                  Enter your administrative username or verified email. Because FDR SmartGuard runs in high-security sovereign mode, the one-time recovery token is issued securely directly to the backend operational console.
+                  Enter your administrative username or verified email. Because FDR Rakshak runs in high-security sovereign mode, the one-time recovery token is issued securely directly to the backend operational console.
                 </p>
                 <div>
                   <label className="block text-xs font-mono font-semibold text-text-primary mb-1">
@@ -445,7 +445,7 @@ export function LoginView({ onLoginSuccess }) {
       {/* Statutory Footer */}
       <div className="w-full max-w-4xl pt-4 border-t border-[#d1d9e6]/80 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-mono text-text-muted">
         <div>
-          FDR SmartGuard &copy; 2026 AICTE Regulation Bureau &bull; Ministry of Education
+          FDR Rakshak &copy; 2026 AICTE Regulation Bureau &bull; Ministry of Education
         </div>
         <div className="flex items-center gap-2 text-[11px]">
           <span>Single Administrator Gateway</span>

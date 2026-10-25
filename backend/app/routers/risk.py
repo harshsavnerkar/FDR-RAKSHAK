@@ -14,7 +14,7 @@ from app.schemas.risk import (
 )
 from app.services import risk_service
 
-logger = logging.getLogger("fdr_smartguard.risk_router")
+logger = logging.getLogger("fdr_rakshak.risk_router")
 
 router = APIRouter(prefix="/api/risk", tags=["Maturity Tracking & Risk Prioritization"])
 

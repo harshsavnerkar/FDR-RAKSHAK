@@ -22,7 +22,7 @@ from app.schemas.auth import (
 from app.services import auth_service
 from app.dependencies.auth import get_session_token_from_request
 
-logger = logging.getLogger("fdr_smartguard.auth_router")
+logger = logging.getLogger("fdr_rakshak.auth_router")
 
 router = APIRouter(prefix="/api/auth", tags=["Administrator Authentication & Security"])
 

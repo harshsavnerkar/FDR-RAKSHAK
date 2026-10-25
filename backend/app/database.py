@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from app.config import DATABASE_URL
 
-logger = logging.getLogger("fdr_smartguard.database")
+logger = logging.getLogger("fdr_rakshak.database")
 
 # Configure database engine
 engine = create_engine(

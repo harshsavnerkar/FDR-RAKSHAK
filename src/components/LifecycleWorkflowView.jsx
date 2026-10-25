@@ -679,7 +679,7 @@ export function LifecycleWorkflowView({ fdrId, onWorkflowUpdated, initialFormTyp
       <div className="p-3 rounded-xl skeuo-recessed text-[11px] text-text-muted font-mono flex items-start gap-2">
         <Info className="w-4 h-4 text-accent-cyan flex-shrink-0 mt-0.5" />
         <span>
-          <strong>STATUTORY SCOPE NOTICE:</strong> FDR SmartGuard lifecycle workflows govern internal administrative regulatory approvals. The system does not interface with interbank RTGS/NEFT payment gateways or execute autonomous bank-side lien release.
+          <strong>STATUTORY SCOPE NOTICE:</strong> FDR Rakshak lifecycle workflows govern internal administrative regulatory approvals. The system does not interface with interbank RTGS/NEFT payment gateways or execute autonomous bank-side lien release.
         </span>
       </div>
     </div>

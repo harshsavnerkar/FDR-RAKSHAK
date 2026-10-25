@@ -283,18 +283,20 @@ export function CustodySlipPrintModal({ record, onClose }) {
         >
           {/* Government Emblem / AICTE Header */}
           <div className="text-center pb-2 border-b-2 border-gray-800">
-            <div className="flex items-center justify-center gap-1.5 mb-0.5">
-              <Shield className="w-5 h-5 text-gray-800 flex-shrink-0" />
-              <h1 className="text-base font-extrabold uppercase tracking-wide text-gray-900">
-                All India Council for Technical Education
-              </h1>
+            <div className="flex items-center justify-center gap-3 mb-1">
+              <img src="/logo.png" alt="FDR Rakshak" className="w-12 h-12 object-contain flex-shrink-0" />
+              <div className="text-left">
+                <h1 className="text-base font-extrabold uppercase tracking-wide text-gray-900 leading-tight">
+                  All India Council for Technical Education
+                </h1>
+                <p className="text-[10px] font-semibold uppercase text-gray-600 leading-tight">
+                  (A Statutory Body of the Government of India &bull; Ministry of Education)
+                </p>
+                <p className="text-[9px] font-mono text-gray-600 leading-tight">
+                  Nelson Mandela Marg, Vasant Kunj, New Delhi &ndash; 110070
+                </p>
+              </div>
             </div>
-            <p className="text-[10px] font-semibold uppercase text-gray-600">
-              (A Statutory Body of the Government of India &bull; Ministry of Education)
-            </p>
-            <p className="text-[9px] font-mono text-gray-600">
-              Nelson Mandela Marg, Vasant Kunj, New Delhi &ndash; 110070
-            </p>
             <div className="mt-1 inline-block px-2.5 py-0.5 bg-gray-100 border border-gray-400 rounded text-[10px] font-bold font-mono uppercase tracking-wider text-gray-900">
               Tripartite FDR Safe Custody Endorsement Slip
             </div>

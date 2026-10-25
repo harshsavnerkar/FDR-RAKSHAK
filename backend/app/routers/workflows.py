@@ -14,7 +14,7 @@ from app.schemas.workflow import (
 )
 from app.services import workflow_service
 
-logger = logging.getLogger("fdr_smartguard.workflows_router")
+logger = logging.getLogger("fdr_rakshak.workflows_router")
 
 router = APIRouter(prefix="/api/workflows", tags=["FDR Lifecycle & Controlled Workflows"])
 

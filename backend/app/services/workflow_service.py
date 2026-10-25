@@ -22,7 +22,7 @@ from app.schemas.workflow import (
     WorkflowBatchSummary
 )
 
-logger = logging.getLogger("fdr_smartguard.workflow_service")
+logger = logging.getLogger("fdr_rakshak.workflow_service")
 
 def _parse_proposed_changes(text: str | None) -> dict[str, Any]:
     if not text:

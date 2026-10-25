@@ -1,5 +1,5 @@
 /**
- * Centralized API Client for FDR SmartGuard Backend (FastAPI + PostgreSQL)
+ * Centralized API Client for FDR Rakshak Backend (FastAPI + PostgreSQL)
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001/api';

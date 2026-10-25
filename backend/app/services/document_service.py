@@ -17,7 +17,7 @@ from app.services import ocr_service
 from app.services import fdr_service
 from app.schemas.document import DocumentUploadResponse, DocumentFields, DocumentLinkRequest
 
-logger = logging.getLogger("fdr_smartguard.documents")
+logger = logging.getLogger("fdr_rakshak.documents")
 
 # In-memory document registry cache for uploaded sessions
 _UPLOAD_REGISTRY: dict[str, dict[str, Any]] = {}

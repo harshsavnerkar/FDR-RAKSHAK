@@ -4,6 +4,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import text
 from app.main import app
 from app.database import SessionLocal
+from app.models.admin import AdminUser
+from app.models.session import AdminSession
 from app.config import (
     ADMIN_USERNAME,
     ADMIN_INITIAL_PASSWORD,
@@ -68,28 +70,46 @@ def test_document_preview_path_traversal_prevention(secure_client):
 
 def test_case_insensitive_and_email_admin_login(secure_client):
     """Ensures administrator can authenticate using normalized username (case-insensitive) or registered email."""
+    test_user = f"case_test_{uuid.uuid4().hex[:8]}"
+    test_email = f"{test_user}@aicte-india.org"
+    test_pass = "CaseSensitivity123!"
+
     with SessionLocal() as db:
-        admin = ensure_initial_admin(db)
-        admin.password_hash = hash_password(ADMIN_INITIAL_PASSWORD)
-        admin.failed_login_attempts = 0
-        admin.locked_until = None
+        test_admin = AdminUser(
+            id=str(uuid.uuid4()),
+            username=test_user,
+            email=test_email,
+            password_hash=hash_password(test_pass),
+            failed_login_attempts=0,
+            locked_until=None
+        )
+        db.add(test_admin)
         db.commit()
+        admin_id = str(test_admin.id)
 
-    # 1. Login with uppercase username
-    upper_login = secure_client.post(
-        "/api/auth/login",
-        json={"username": ADMIN_USERNAME.upper(), "password": ADMIN_INITIAL_PASSWORD}
-    )
-    assert upper_login.status_code == 200
-    assert upper_login.json()["authenticated"] is True
+    try:
+        # 1. Login with uppercase username
+        upper_login = secure_client.post(
+            "/api/auth/login",
+            json={"username": test_user.upper(), "password": test_pass}
+        )
+        assert upper_login.status_code == 200
+        assert upper_login.json()["authenticated"] is True
 
-    # 2. Login with email
-    email_login = secure_client.post(
-        "/api/auth/login",
-        json={"username": "admin@aicte-india.org", "password": ADMIN_INITIAL_PASSWORD}
-    )
-    assert email_login.status_code == 200
-    assert email_login.json()["authenticated"] is True
+        # 2. Login with email
+        email_login = secure_client.post(
+            "/api/auth/login",
+            json={"username": test_email, "password": test_pass}
+        )
+        assert email_login.status_code == 200
+        assert email_login.json()["authenticated"] is True
+    finally:
+        with SessionLocal() as db:
+            db.query(AdminSession).filter(AdminSession.admin_id == admin_id).delete()
+            disposable = db.query(AdminUser).filter(AdminUser.id == admin_id).first()
+            if disposable:
+                db.delete(disposable)
+            db.commit()
 
 def test_database_corpus_and_record_preservation():
     """Guarantees that institutions, FDR records, and the multi-crore corpus remain preserved in PostgreSQL."""

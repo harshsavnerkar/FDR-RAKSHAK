@@ -18,7 +18,7 @@ from app.schemas.document import (
     OCRStatusResponse
 )
 
-logger = logging.getLogger("fdr_smartguard.documents_router")
+logger = logging.getLogger("fdr_rakshak.documents_router")
 
 router = APIRouter(prefix="/api/documents", tags=["FDR Document OCR & Verification"])
 
