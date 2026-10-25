@@ -1,45 +1,56 @@
-# FDR SmartGuard — Fixed Deposit Receipt & Security Deposit Management Portal
+# FDR Rakshak (एफ.डी.आर. रक्षक)
 
-**AICTE Regulation Bureau, Ministry of Education, Government of India**  
-*Step 2: Institution Management & FDR Repository Complete*
-
----
-
-## Overview
-
-**FDR SmartGuard** is an administrative regulatory dashboard built specifically for the AICTE Regulation Bureau to manage institutional Fixed Deposit Receipts (FDRs), verification queues, maturity milestones, renewals, and discharge release requests.
-
-In **Step 2**, two core functional modules were implemented:
-1. **Institution Management (`src/components/InstitutionManagement.jsx`)**: Searchable, filterable institutional directory, PID registration modal with strict validation, detail/dossier modal with in-place profile editing, associated FDR listing, and safe deletion guards.
-2. **FDR Repository (`src/components/FdrRepository.jsx`)**: Full repository table, multi-field search, status/institution/bank/maturity-date range filtering, column sorting, Add FDR modal with strict validation, Edit FDR modal preserving stable internal IDs, and integration with the shared FDR Dossier modal.
-3. **Shared Reactive Data Layer (`src/data/sampleFdrData.js` & `src/App.jsx`)**: Single source of truth for institutions and FDR records. Derived statistics, summary cards, Recharts visualizations, and institution metrics update immediately when records are created or edited.
+**Statutory Security Deposit & Fixed Deposit Receipt Governance Bureau**  
+*All India Council for Technical Education (AICTE), Ministry of Education, Government of India*  
+*Problem Statement ID: 26265 — Smart Automation*
 
 ---
 
-## Architectural & Design Consistency
+## Default Administrator Credentials
 
-- **Design System**: Strict Industrial Skeuomorphism & Industrial Light aesthetic.
-- **Palette**: Chassis `#e0e5ec`, elevated panel `#f0f2f5`, recessed wells `#d1d9e6`, charcoal text `#2d3436`, slate muted text `#4a5568`, and industrial orange `#ff6b35`.
-- **Typography**: Inter for general administrative UI and JetBrains Mono for monetary values, dates, and technical identifiers.
-- **Hardware Accents**: Corner screw rivets, ventilation grilles, and illuminated status LEDs.
+When the backend starts up for the first time against your PostgreSQL database, it automatically provisions the initial bureau administrator:
+
+| Field | Default Value | Notes |
+| :--- | :--- | :--- |
+| **Username** | `aicte_admin` | Case-insensitive; pre-filled in login UI |
+| **Alternative Login** | `admin@aicte-india.org` | You can also log in using this registered email |
+| **Master Password** | `AICTE@Admin2026!` | Initial development credential |
+
+> **Note**: If you change the password using **Forgot Master Password**, the new password is encrypted with Argon2id and committed to PostgreSQL. If forgotten, you can initiate recovery and retrieve the 15-minute token directly from the backend terminal logs.
 
 ---
 
-## How to Run the Application
+## Quick Setup Guide for Teammates
 
+### 1. Database Configuration
+Ensure PostgreSQL is running, then create `backend/.env` (or copy `backend/.env.example`):
+```ini
+DATABASE_URL=postgresql+psycopg://<username>:<password>@localhost:5432/<dbname>
+CORS_ORIGINS=http://localhost:3001,http://127.0.0.1:3001
+HOST=0.0.0.0
+PORT=8001
+ENVIRONMENT=development
+ADMIN_USERNAME=aicte_admin
+ADMIN_EMAIL=admin@aicte-india.org
+ADMIN_INITIAL_PASSWORD=AICTE@Admin2026!
+```
+
+### 2. Start the Backend API (Port 8001)
 ```powershell
-# 1. Navigate to the project directory
-cd c:\Users\Harsh\Downloads\FDR_Rakshak
+cd backend
+pip install -r requirements.txt
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
+```
+*On initial startup, tables are automatically verified and initial data + administrator are provisioned.*
 
-# 2. Run the development server
+### 3. Start the Frontend (Port 3001)
+```powershell
+# In the root directory:
+npm install
 npm run dev
-
-# 3. Open in your browser
-http://localhost:3001
 ```
 
-To build for production:
-```powershell
-npm run build
-npm run preview
-```
+### 4. Access the Vault
+Open your browser at **`http://localhost:3001`** and sign in with:
+- **Username:** `aicte_admin`
+- **Password:** `AICTE@Admin2026!`
