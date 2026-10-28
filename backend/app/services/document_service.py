@@ -131,6 +131,7 @@ async def handle_document_upload(file: UploadFile) -> DocumentUploadResponse:
         field_confidence=parsed["fieldConfidence"],
         overall_confidence=parsed["overallConfidence"],
         ambiguities=parsed["ambiguities"],
+        detected_discrepancies=parsed.get("detectedDiscrepancies", []),
         is_complete=parsed["isComplete"]
     )
 

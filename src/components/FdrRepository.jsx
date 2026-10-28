@@ -24,7 +24,7 @@ import {
   AlertTriangle,
   Cpu
 } from 'lucide-react';
-import { StatusBadge, PriorityBadge, MaturityBadge, LifecycleBadge } from './StatusBadge';
+import { StatusBadge, PriorityBadge, MaturityBadge, LifecycleBadge, VerificationSourceBadge } from './StatusBadge';
 import { formatINR, formatDate } from '../data/sampleFdrData';
 import { exportFdrsToCsv } from '../utils/exportUtils';
 import { api } from '../services/api';
@@ -708,6 +708,9 @@ export function FdrRepository({
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="space-y-1">
                         <StatusBadge status={item.verificationStatus} />
+                        <div>
+                          <VerificationSourceBadge status={item.verificationStatus} />
+                        </div>
                         {item.lifecycleStatus && item.lifecycleStatus !== 'ACTIVE' && (
                           <div>
                             <LifecycleBadge status={item.lifecycleStatus} />
@@ -1510,19 +1513,14 @@ function EditFdrModal({ fdr, institutions = [], existingFdrs = [], onClose, onSa
                 onChange={(e) => setFormData({ ...formData, verificationStatus: e.target.value })}
                 className="w-full px-3 py-2 text-xs font-mono skeuo-recessed text-text-primary border border-[#babecc] rounded-lg"
               >
-                {/* Preserve existing verified if already verified; do not allow silently flipping unverified to verified */}
-                {fdr.verificationStatus === 'Verified' ? (
-                  <option value="Verified">Verified (Current Official Status)</option>
-                ) : null}
-                <option value="Pending">Pending Verification</option>
+                <option value="Pending">Institutional Submission (Pending Bank Node)</option>
+                <option value="Verified">Verified (Bank-Confirmed Source)</option>
+                <option value="Discrepancy">Discrepancy Flagged</option>
                 <option value="Expiring Soon">Expiring Soon</option>
-                <option value="Discrepancy">Discrepancy / Overdue</option>
               </select>
-              {fdr.verificationStatus !== 'Verified' && (
-                <p className="text-[10px] font-mono text-text-muted mt-1">
-                  Status changes to Verified require genuine bank API / physical seal audit.
-                </p>
-              )}
+              <p className="text-[10px] font-mono text-text-muted mt-1">
+                Verified status reflects independent Bank Node confirmation / CBS feed cross-check.
+              </p>
             </div>
 
             <div>

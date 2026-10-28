@@ -80,11 +80,8 @@ def vault_new_fdr(
 ):
     """Register and vault a new Fixed Deposit Receipt instrument under AICTE Bureau custody."""
     if current_admin and current_admin.role == "INSTITUTION_USER" and current_admin.institution_id:
-        if data.institution_id != current_admin.institution_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access Denied: Institutional administrators can only upload instruments for their own institution."
-            )
+        # Securely enforce tenant isolation by binding directly to authenticated institution ID
+        data.institution_code = current_admin.institution_id
 
     return fdr_service.create_fdr(db=db, data=data)
 

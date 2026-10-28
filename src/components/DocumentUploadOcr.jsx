@@ -124,6 +124,24 @@ export function DocumentUploadOcr({
         matchedInstCode = institutions[0].code;
       }
 
+      // Check for statutory discrepancies (AICTE mandatory 5-year lock-in, ₹50L norm, or server-detected discrepancies)
+      const discrepancies = [...(ocrResult.detectedDiscrepancies || [])];
+
+      // Client-side validation fallback
+      if (ext.issueDate && ext.maturityDate) {
+        const d1 = new Date(ext.issueDate);
+        const d2 = new Date(ext.maturityDate);
+        const diffDays = (d2 - d1) / (1000 * 60 * 60 * 24);
+        if (diffDays < 1750 && !discrepancies.some(d => d.includes('Tenure'))) {
+          discrepancies.push(`Tenure Variance: Instrument tenure is ${Math.round(diffDays / 365.25 * 10) / 10} year(s), failing mandatory AICTE 5-year lock-in requirement.`);
+        }
+      }
+      if (ext.depositAmount && Number(ext.depositAmount) < 5000000 && !discrepancies.some(d => d.includes('Deposit Amount'))) {
+        discrepancies.push(`Deposit Amount Deficit: ₹${Number(ext.depositAmount).toLocaleString('en-IN')} is below prescribed ₹50,00,000 regulatory norm.`);
+      }
+
+      const hasDiscrepancy = discrepancies.length > 0;
+
       setFormData({
         reference: ext.reference || '',
         institutionCode: matchedInstCode,
@@ -137,9 +155,9 @@ export function DocumentUploadOcr({
         maturityDate: ext.maturityDate || '',
         maturityAmount: ext.maturityAmount ? String(ext.maturityAmount) : '',
         category: 'Statutory Lien',
-        priority: 'Standard',
-        verificationStatus: ocrResult.ambiguities?.length > 0 ? 'Discrepancy' : 'Pending',
-        discrepancyNote: ocrResult.ambiguities?.length > 0 ? ocrResult.ambiguities.join('; ') : ''
+        priority: hasDiscrepancy ? 'HIGH' : 'Standard',
+        verificationStatus: hasDiscrepancy ? 'Discrepancy' : 'Pending',
+        discrepancyNote: hasDiscrepancy ? discrepancies.join('; ') : ''
       });
       setModifiedFields(new Set());
       setSubmitSuccess(null);
@@ -588,12 +606,40 @@ export function DocumentUploadOcr({
                 </div>
               </div>
 
-              {/* Ambiguities / Warnings */}
-              {ocrResult.ambiguities && ocrResult.ambiguities.length > 0 && (
-                <div className="mt-4 p-3 rounded-lg bg-[#fff8e6] border border-[#ffd166] text-[#b36b00] text-xs font-mono">
+              {/* Statutory Discrepancy Warnings */}
+              {((ocrResult.detectedDiscrepancies && ocrResult.detectedDiscrepancies.length > 0) || formData.verificationStatus === 'Discrepancy') ? (
+                <div className="mt-4 p-3 rounded-lg bg-[#fff0f2] border border-[#feb2b2] text-[#c53030] text-xs font-mono shadow-sm">
                   <div className="flex items-center gap-1.5 font-bold mb-1">
+                    <ShieldAlert className="w-4 h-4 text-[#c53030] animate-pulse" />
+                    <span>Statutory Discrepancy Flagged:</span>
+                  </div>
+                  <ul className="list-disc list-inside space-y-1 text-[11px] text-[#9b2c2c] leading-relaxed">
+                    {(ocrResult.detectedDiscrepancies || [formData.discrepancyNote]).map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                  <div className="mt-2 text-[10px] text-[#c53030]/80">
+                    * Vaulting this document will register the record under Discrepancy audit status for Scrutiny review.
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-4 p-3 rounded-lg bg-[#eafaf1] border border-[#b7ebcd] text-[#1b7943] text-xs font-mono shadow-sm">
+                  <div className="flex items-center gap-1.5 font-bold mb-1">
+                    <CheckCircle2 className="w-4 h-4 text-[#1b7943]" />
+                    <span>Statutory Norms Satisfied — Institutional Submission:</span>
+                  </div>
+                  <p className="text-[11px] text-[#276749] leading-relaxed">
+                    Instrument satisfies mandatory 5-year tenure and ₹50L deposit norm. Document will be vaulted as an <strong>Institutional Submission</strong> pending independent Bank Node verification.
+                  </p>
+                </div>
+              )}
+
+              {/* Minor Ambiguities / Parsing Notes */}
+              {ocrResult.ambiguities && ocrResult.ambiguities.length > 0 && (
+                <div className="mt-3 p-2.5 rounded-lg bg-[#fff8e6] border border-[#ffd166] text-[#b36b00] text-xs font-mono">
+                  <div className="flex items-center gap-1.5 font-bold mb-0.5">
                     <AlertTriangle className="w-3.5 h-3.5 text-[#b36b00]" />
-                    <span>Ambiguity Alerts ({ocrResult.ambiguities.length}):</span>
+                    <span>OCR Parsing Observations ({ocrResult.ambiguities.length}):</span>
                   </div>
                   <ul className="list-disc list-inside space-y-0.5 text-[11px]">
                     {ocrResult.ambiguities.map((item, idx) => (

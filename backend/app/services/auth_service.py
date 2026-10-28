@@ -158,7 +158,7 @@ def ensure_default_rbac_users(db: Session) -> None:
             "email": "admin@vit.edu.in",
             "password": "College@2026!",
             "role": "INSTITUTION_USER",
-            "display_name": "Vidyalankar Inst. of Tech (College Admin)",
+            "display_name": "Institutional College Administrator",
             "institution_id": "INST-VIT-MH-077",
             "bank_name": None
         },

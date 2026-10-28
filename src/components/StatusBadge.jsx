@@ -15,9 +15,16 @@ export function StatusBadge({ status, size = "md" }) {
           bgClass: 'bg-[#eafaf1] text-[#1b7943] border-[#b7ebcd]',
           insetClass: 'shadow-[inset_1px_1px_2px_#babecc,inset_-1px_-1px_2px_#ffffff]',
         };
+      case 'Institutional':
+        return {
+          label: 'Institutional',
+          ledClass: 'led-blue',
+          bgClass: 'bg-[#eef2ff] text-[#2b6cb0] border-[#c7d2fe]',
+          insetClass: 'shadow-[inset_1px_1px_2px_#babecc,inset_-1px_-1px_2px_#ffffff]',
+        };
       case 'Pending':
         return {
-          label: 'Pending',
+          label: 'Pending Intake',
           ledClass: 'led-amber',
           bgClass: 'bg-[#fff8e6] text-[#b7791f] border-[#fbd38d]',
           insetClass: 'shadow-[inset_1px_1px_2px_#babecc,inset_-1px_-1px_2px_#ffffff]',

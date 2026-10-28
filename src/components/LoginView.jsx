@@ -42,9 +42,9 @@ const ROLE_PRESETS = [
   {
     id: 'college',
     role: 'INSTITUTION_USER',
-    title: 'College Admin (VIT)',
+    title: 'Institutional User',
     icon: '🏛️',
-    subtitle: 'Vidyalankar Inst of Tech (Wadala)',
+    subtitle: 'Upload FDRs, renewals & compliance status',
     username: 'vit_mumbai',
     password: 'College@2026!',
     badge: 'Institutional',

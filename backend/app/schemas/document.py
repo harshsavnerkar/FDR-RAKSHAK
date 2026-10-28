@@ -39,6 +39,7 @@ class DocumentUploadResponse(BaseModel):
     field_confidence: dict[str, float] = Field(default_factory=dict)
     overall_confidence: float = 0.0
     ambiguities: list[str] = Field(default_factory=list)
+    detected_discrepancies: list[str] = Field(default_factory=list)
     is_complete: bool = False
     disclaimer: str = STATUTORY_DISCLAIMER
     uploaded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
