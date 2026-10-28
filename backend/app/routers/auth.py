@@ -81,13 +81,26 @@ def login(
         path="/"
     )
 
+    admin_data = {
+        "username": admin.username,
+        "email": admin.email,
+        "role": admin.role or "BUREAU_CHIEF",
+        "displayName": admin.display_name or admin.username,
+        "institutionId": admin.institution_id,
+        "bankName": admin.bank_name
+    }
+
     return LoginResponse(
         status="success",
         authenticated=True,
         username=admin.username,
         email=admin.email,
+        role=admin.role or "BUREAU_CHIEF",
+        display_name=admin.display_name or admin.username,
+        institution_id=admin.institution_id,
+        bank_name=admin.bank_name,
         message="Administrator authentication successful.",
-        admin={"username": admin.username, "email": admin.email}
+        admin=admin_data
     )
 
 @router.post("/logout")
@@ -139,13 +152,27 @@ def check_session(
     if not session or not session.admin:
         return SessionResponse(authenticated=False)
 
+    admin = session.admin
+    admin_data = {
+        "username": admin.username,
+        "email": admin.email,
+        "role": admin.role or "BUREAU_CHIEF",
+        "displayName": admin.display_name or admin.username,
+        "institutionId": admin.institution_id,
+        "bankName": admin.bank_name
+    }
+
     return SessionResponse(
         authenticated=True,
-        username=session.admin.username,
-        email=session.admin.email,
+        username=admin.username,
+        email=admin.email,
+        role=admin.role or "BUREAU_CHIEF",
+        display_name=admin.display_name or admin.username,
+        institution_id=admin.institution_id,
+        bank_name=admin.bank_name,
         session_id=session.id,
         expires_at=session.expires_at,
-        admin={"username": session.admin.username, "email": session.admin.email}
+        admin=admin_data
     )
 
 @router.post("/recover-initiate", response_model=PasswordRecoveryInitiateResponse)

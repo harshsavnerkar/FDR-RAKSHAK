@@ -13,6 +13,10 @@ def setup_test_database():
     Base.metadata.create_all(bind=engine)
     with engine.begin() as conn:
         conn.execute(text("ALTER TABLE fdrs ADD COLUMN IF NOT EXISTS lifecycle_status VARCHAR(50) DEFAULT 'ACTIVE' NOT NULL;"))
+        conn.execute(text("ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'BUREAU_CHIEF' NOT NULL;"))
+        conn.execute(text("ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS display_name VARCHAR(150);"))
+        conn.execute(text("ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS institution_id VARCHAR(64);"))
+        conn.execute(text("ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS bank_name VARCHAR(150);"))
 
     with SessionLocal() as db:
         admin = ensure_initial_admin(db)
@@ -20,7 +24,11 @@ def setup_test_database():
             id=admin.id,
             username=admin.username,
             email=admin.email,
-            password_hash=admin.password_hash
+            password_hash=admin.password_hash,
+            role=getattr(admin, "role", "BUREAU_CHIEF"),
+            display_name=getattr(admin, "display_name", None),
+            institution_id=getattr(admin, "institution_id", None),
+            bank_name=getattr(admin, "bank_name", None)
         )
 
     # By default, authorize existing domain tests via dependency override

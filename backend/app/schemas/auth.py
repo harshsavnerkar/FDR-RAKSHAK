@@ -16,6 +16,10 @@ class LoginResponse(BaseModel):
     authenticated: bool = True
     username: str
     email: str
+    role: Optional[str] = "BUREAU_CHIEF"
+    display_name: Optional[str] = None
+    institution_id: Optional[str] = None
+    bank_name: Optional[str] = None
     message: str
     admin: Optional[dict] = None
 
@@ -25,6 +29,10 @@ class SessionResponse(BaseModel):
     authenticated: bool
     username: Optional[str] = None
     email: Optional[str] = None
+    role: Optional[str] = None
+    display_name: Optional[str] = None
+    institution_id: Optional[str] = None
+    bank_name: Optional[str] = None
     session_id: Optional[str] = None
     expires_at: Optional[datetime] = None
     admin: Optional[dict] = None

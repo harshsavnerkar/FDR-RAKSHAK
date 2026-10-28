@@ -78,14 +78,24 @@ def record_audit_event(
 
 def ensure_initial_admin(db: Session) -> AdminUser:
     """
-    Provisions the initial AICTE bureau administrator if no administrator exists in PostgreSQL.
+    Provisions or updates the initial AICTE bureau administrator in PostgreSQL.
     Uses environment credentials or secure fallback.
     """
-    admin = db.scalar(select(AdminUser).limit(1))
+    admin = db.scalar(select(AdminUser).where(AdminUser.username == ADMIN_USERNAME))
     if admin is not None:
+        updated = False
+        if admin.role != "BUREAU_CHIEF":
+            admin.role = "BUREAU_CHIEF"
+            updated = True
+        if not admin.display_name:
+            admin.display_name = "Dr. Ramesh Sharma (AICTE Bureau Chief)"
+            updated = True
+        if updated:
+            db.commit()
+            db.refresh(admin)
         return admin
 
-    logger.info("No administrative account detected in PostgreSQL. Provisioning initial AICTE Administrator...")
+    logger.info("No primary administrative account detected in PostgreSQL. Provisioning initial AICTE Administrator...")
     if not ADMIN_INITIAL_PASSWORD:
         raise RuntimeError(
             "CRITICAL SECURITY CONFIGURATION: No administrative account detected in PostgreSQL and "
@@ -97,7 +107,9 @@ def ensure_initial_admin(db: Session) -> AdminUser:
     initial_admin = AdminUser(
         username=ADMIN_USERNAME,
         email=ADMIN_EMAIL,
-        password_hash=password_hash
+        password_hash=password_hash,
+        role="BUREAU_CHIEF",
+        display_name="Dr. Ramesh Sharma (AICTE Bureau Chief)"
     )
     db.add(initial_admin)
     db.commit()
@@ -112,6 +124,86 @@ def ensure_initial_admin(db: Session) -> AdminUser:
     )
     logger.info(f"Initial administrator '{ADMIN_USERNAME}' safely created in PostgreSQL.")
     return initial_admin
+
+
+def ensure_default_rbac_users(db: Session) -> None:
+    """
+    Idempotently provisions demo accounts for the 4 sovereign RBAC personas:
+    1. Institutional User (spit_mumbai / vit_mumbai)
+    2. Bank / Financial Node (sbi_nodal)
+    3. AICTE Scrutiny Officer (scrutiny_officer)
+    4. AICTE Bureau Chief (aicte_admin)
+    """
+    default_users = [
+        {
+            "username": "scrutiny_officer",
+            "email": "scrutiny.officer@aicte-india.org",
+            "password": "Scrutiny@2026!",
+            "role": "SCRUTINY_OFFICER",
+            "display_name": "Smt. Sunita Rao (Senior Scrutiny Officer)",
+            "institution_id": None,
+            "bank_name": None
+        },
+        {
+            "username": "spit_mumbai",
+            "email": "principal@spit.ac.in",
+            "password": "College@2026!",
+            "role": "INSTITUTION_USER",
+            "display_name": "Sardar Patel Inst. of Tech (College Admin)",
+            "institution_id": "INST-SPIT-MH-019",
+            "bank_name": None
+        },
+        {
+            "username": "vit_mumbai",
+            "email": "admin@vit.edu.in",
+            "password": "College@2026!",
+            "role": "INSTITUTION_USER",
+            "display_name": "Vidyalankar Inst. of Tech (College Admin)",
+            "institution_id": "INST-VIT-MH-077",
+            "bank_name": None
+        },
+        {
+            "username": "sbi_nodal",
+            "email": "treasury.nodal@sbi.co.in",
+            "password": "Bank@2026!",
+            "role": "BANK_NODE",
+            "display_name": "State Bank of India (Institutional Nodal Desk)",
+            "institution_id": None,
+            "bank_name": "State Bank of India"
+        }
+    ]
+
+    for user_info in default_users:
+        existing = db.scalar(select(AdminUser).where(AdminUser.username == user_info["username"]))
+        if not existing:
+            new_user = AdminUser(
+                username=user_info["username"],
+                email=user_info["email"],
+                password_hash=hash_password(user_info["password"]),
+                role=user_info["role"],
+                display_name=user_info["display_name"],
+                institution_id=user_info["institution_id"],
+                bank_name=user_info["bank_name"]
+            )
+            db.add(new_user)
+            db.commit()
+            logger.info(f"RBAC Demo account '{user_info['username']}' ({user_info['role']}) safely provisioned.")
+        else:
+            updated = False
+            if existing.role != user_info["role"]:
+                existing.role = user_info["role"]
+                updated = True
+            if existing.display_name != user_info["display_name"]:
+                existing.display_name = user_info["display_name"]
+                updated = True
+            if existing.institution_id != user_info["institution_id"]:
+                existing.institution_id = user_info["institution_id"]
+                updated = True
+            if existing.bank_name != user_info["bank_name"]:
+                existing.bank_name = user_info["bank_name"]
+                updated = True
+            if updated:
+                db.commit()
 
 def authenticate_admin(
     db: Session,

@@ -66,3 +66,33 @@ def get_current_admin(
             detail="Administrator account not found for current session."
         )
     return session.admin
+
+def get_optional_current_admin(
+    request: Request,
+    db: Session = Depends(get_db)
+) -> Optional[AdminUser]:
+    """
+    Extracts authenticated administrator if a valid session exists.
+    Returns None if unauthenticated (allowing backwards compatibility for legacy/unauthenticated tests).
+    """
+    raw_token = get_session_token_from_request(request)
+    if not raw_token:
+        return None
+    session = auth_service.get_active_session(db, raw_token)
+    if not session or not session.admin:
+        return None
+    return session.admin
+
+def require_roles(*allowed_roles: str):
+    """
+    Enforces Role-Based Access Control (RBAC).
+    Raises HTTP 403 Forbidden if the authenticated user's role is not within allowed_roles.
+    """
+    def role_checker(admin: AdminUser = Depends(get_current_admin)) -> AdminUser:
+        if admin.role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied: Role '{admin.role}' lacks permission for this action. Required: {', '.join(allowed_roles)}."
+            )
+        return admin
+    return role_checker

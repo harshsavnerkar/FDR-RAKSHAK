@@ -19,7 +19,7 @@ from app.routers import (
 )
 from app.dependencies.auth import get_current_admin
 from app.services.seed_data import seed_database
-from app.services.auth_service import ensure_initial_admin
+from app.services.auth_service import ensure_initial_admin, ensure_default_rbac_users
 
 # Configure structured logging
 logging.basicConfig(
@@ -37,9 +37,13 @@ async def lifespan(app: FastAPI):
         Base.metadata.create_all(bind=engine)
         logger.info("Database schemas verified successfully.")
 
-        # Ensure lifecycle_status column exists in fdrs table
+        # Ensure schema migrations exist
         with engine.begin() as conn:
             conn.execute(text("ALTER TABLE fdrs ADD COLUMN IF NOT EXISTS lifecycle_status VARCHAR(50) DEFAULT 'ACTIVE' NOT NULL;"))
+            conn.execute(text("ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT 'BUREAU_CHIEF' NOT NULL;"))
+            conn.execute(text("ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS display_name VARCHAR(150);"))
+            conn.execute(text("ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS institution_id VARCHAR(64);"))
+            conn.execute(text("ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS bank_name VARCHAR(150);"))
 
         from app.database import SessionLocal
         with SessionLocal() as db:
@@ -54,6 +58,7 @@ async def lifespan(app: FastAPI):
 
             # Ensure initial administrator exists in PostgreSQL
             ensure_initial_admin(db)
+            ensure_default_rbac_users(db)
     except Exception as exc:
         logger.error(f"Critical error during database initialization: {exc}")
         # Re-raise so server doesn't pretend to be healthy if DB failed

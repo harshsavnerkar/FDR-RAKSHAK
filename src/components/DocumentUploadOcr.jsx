@@ -366,6 +366,8 @@ export function DocumentUploadOcr({
     Math.abs(Number(existingFdrRecord.depositAmount) - Number(formData.depositAmount)) > 0.01;
   const hasRefDiscrepancy = existingFdrRecord && formData.reference && 
     existingFdrRecord.reference.toUpperCase() !== formData.reference.toUpperCase();
+  const hasMaturityDiscrepancy = existingFdrRecord && formData.maturityDate &&
+    existingFdrRecord.maturityDate !== formData.maturityDate;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -762,12 +764,30 @@ export function DocumentUploadOcr({
                               {formData.depositAmount ? formatINR(Number(formData.depositAmount)) : '(Not detected)'}
                             </span>
                           </div>
+
+                          <div>
+                            <span className="text-text-muted">Vault Maturity:</span>{' '}
+                            <span className="font-bold text-text-primary">{existingFdrRecord.maturityDate || '(None)'}</span>
+                          </div>
+                          <div>
+                            <span className="text-text-muted">Scanned Maturity:</span>{' '}
+                            <span className={`font-bold ${hasMaturityDiscrepancy ? 'text-[#cf1322]' : 'text-[#1b7943]'}`}>
+                              {formData.maturityDate || '(Not detected)'}
+                            </span>
+                          </div>
                         </div>
 
                         {hasAmountDiscrepancy && (
                           <div className="text-[11px] text-[#cf1322] flex items-center gap-1 font-bold">
                             <AlertTriangle className="w-3.5 h-3.5" />
-                            <span>Deposit amount mismatch detected! Document will record an administrative discrepancy.</span>
+                            <span>Deposit amount variance detected! Document scan differs from institutional vault record.</span>
+                          </div>
+                        )}
+
+                        {hasMaturityDiscrepancy && (
+                          <div className="text-[11px] text-[#cf1322] flex items-center gap-1 font-bold">
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                            <span>Maturity date variance detected! Vault indicates {existingFdrRecord.maturityDate} while scan indicates {formData.maturityDate}.</span>
                           </div>
                         )}
 

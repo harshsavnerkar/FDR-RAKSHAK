@@ -206,6 +206,13 @@ def link_document_to_fdr(
                 f"DISCREPANCY: Vault ref '{existing_ref}' differs from document scan '{new_ref}'."
             )
 
+        existing_mat = str(fdr_record.maturity_date) if fdr_record.maturity_date else ""
+        new_mat = str(extracted.get("maturityDate") or "").strip()
+        if new_mat and existing_mat and existing_mat != new_mat:
+            discrepancy_entries.append(
+                f"DISCREPANCY: Vault maturity date ({existing_mat}) differs from document scan ({new_mat})."
+            )
+
         # Update FDR record metadata
         from app.schemas.fdr import FDRUpdate
         update_dict: dict[str, Any] = {

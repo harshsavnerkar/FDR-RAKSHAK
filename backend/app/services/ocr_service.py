@@ -341,7 +341,7 @@ def parse_fdr_fields(raw_text: str) -> dict[str, Any]:
 
     # 10. Issue Date extraction
     issue_match = re.search(
-        r"(?:date\s*of\s*(?:issue|deposit)|issued?\s*(?:on|date)?|effective\s*date|value\s*date|booking\s*date|fdr\s*date)\s*[:#-]?\s*([0-9]{1,2}[-/.][0-9]{1,2}[-/.][0-9]{2,4}|[0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{2,4})",
+        r"(?:date\s*of\s*(?:issue|deposit)|issued?\s*(?:on|date)?|effective\s*date|value\s*date|booking\s*date|fdr\s*date)\s*[:#-]?\s*([0-9]{1,2}[-/.][0-9]{1,2}[-/.][0-9]{2,4}|[0-9]{1,2}[-\s/]+[A-Za-z]{3,9}[-\s/]+[0-9]{2,4})",
         raw_text,
         re.IGNORECASE
     )
@@ -353,7 +353,7 @@ def parse_fdr_fields(raw_text: str) -> dict[str, Any]:
 
     # 11. Maturity Date extraction
     mat_date_match = re.search(
-        r"(?:date\s*of\s*maturity|maturity\s*date|due\s*date|expiry\s*date|matures?\s*(?:on|date)?)\s*[:#-]?\s*([0-9]{1,2}[-/.][0-9]{1,2}[-/.][0-9]{2,4}|[0-9]{1,2}\s+[A-Za-z]{3,9}\s+[0-9]{2,4})",
+        r"(?:date\s*of\s*maturity|maturity\s*date|due\s*date|expiry\s*date|matures?\s*(?:on|date)?)\s*[:#-]?\s*([0-9]{1,2}[-/.][0-9]{1,2}[-/.][0-9]{2,4}|[0-9]{1,2}[-\s/]+[A-Za-z]{3,9}[-\s/]+[0-9]{2,4})",
         raw_text,
         re.IGNORECASE
     )

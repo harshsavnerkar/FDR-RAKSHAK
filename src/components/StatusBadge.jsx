@@ -251,3 +251,57 @@ export function LifecycleBadge({ status }) {
     </span>
   );
 }
+
+/**
+ * VerificationSourceBadge Component
+ * Distinguishes between institutional self-reported submissions,
+ * independently confirmed bank sources, and flagged discrepancy variances
+ * (as mandated by AICTE Problem Statement 26265).
+ */
+export function VerificationSourceBadge({ status, source = null }) {
+  if (status === 'Verified') {
+    return (
+      <span
+        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-[#eafaf1] text-[#1b7943] border border-[#b7ebcd] shadow-[inset_1px_1px_2px_#ffffff]"
+        title="Data independently confirmed by authorized bank / financial voucher"
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-[#1b7943]" />
+        <span>Bank-Verified Source</span>
+      </span>
+    );
+  }
+
+  if (status === 'Discrepancy') {
+    return (
+      <span
+        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-[#fff0f2] text-[#c53030] border border-[#feb2b2] shadow-[inset_1px_1px_2px_#ffffff]"
+        title="Discrepancy detected: Variance in deposit amount, maturity date, or bank details"
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-[#c53030] animate-pulse" />
+        <span>Discrepancy Flagged</span>
+      </span>
+    );
+  }
+
+  if (status === 'Expiring Soon') {
+    return (
+      <span
+        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-[#fff5eb] text-[#c05621] border-[#fbd38d] shadow-[inset_1px_1px_2px_#ffffff]"
+        title="Bank-confirmed instrument approaching maturity deadline"
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-[#ff6b35]" />
+        <span>Bank Source (Expiring)</span>
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-[#f0f4f8] text-[#2b6cb0] border border-[#bee3f8] shadow-[inset_1px_1px_2px_#ffffff]"
+      title="Data self-reported by institution during initial intake; pending independent bank verification"
+    >
+      <span className="w-1.5 h-1.5 rounded-full bg-[#2b6cb0]" />
+      <span>Institutional Submission</span>
+    </span>
+  );
+}

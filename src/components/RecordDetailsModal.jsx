@@ -17,7 +17,7 @@ import {
   Scale,
   RotateCcw
 } from 'lucide-react';
-import { StatusBadge, PriorityBadge, LifecycleBadge } from './StatusBadge';
+import { StatusBadge, PriorityBadge, LifecycleBadge, VerificationSourceBadge } from './StatusBadge';
 import { formatINR, formatDate } from '../data/sampleFdrData';
 import { ComplianceAuditView } from './ComplianceAuditView';
 import { RiskMaturityView } from './RiskMaturityView';
@@ -84,6 +84,7 @@ export function RecordDetailsModal({ record, onClose, onActionTrigger }) {
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2.5">
               <StatusBadge status={record.verificationStatus} />
+              <VerificationSourceBadge status={record.verificationStatus} />
               <PriorityBadge priority={record.priority} />
               <LifecycleBadge status={record.lifecycleStatus || 'ACTIVE'} />
               <span className="text-xs font-mono px-2 py-0.5 rounded bg-panel border border-[#babecc] text-text-muted">
@@ -261,18 +262,64 @@ export function RecordDetailsModal({ record, onClose, onActionTrigger }) {
           </div>
 
           {/* Section 3: Discrepancy & Administrative Observations */}
-          <div className="p-4 rounded-xl skeuo-recessed border border-[#babecc]">
+          <div className={`p-4 rounded-xl border ${
+            record.verificationStatus === 'Discrepancy'
+              ? 'bg-[#fff0f2] border-[#feb2b2] shadow-[inset_1px_1px_3px_#ffccd5]'
+              : 'skeuo-recessed border-[#babecc]'
+          }`}>
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-accent-orange flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-xs font-bold text-text-primary uppercase tracking-wide">
-                  Regulatory Notes & Discrepancy Log
-                </h4>
-                <p className="mt-1 text-xs text-text-primary leading-relaxed font-sans">
-                  {record.discrepancyNote}
+              <AlertCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+                record.verificationStatus === 'Discrepancy' ? 'text-[#c53030]' : 'text-accent-orange'
+              }`} />
+              <div className="flex-1">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <h4 className={`text-xs font-bold uppercase tracking-wide ${
+                    record.verificationStatus === 'Discrepancy' ? 'text-[#c53030]' : 'text-text-primary'
+                  }`}>
+                    {record.verificationStatus === 'Discrepancy'
+                      ? 'Statutory Discrepancy & Variance Advisory'
+                      : 'Regulatory Notes & Provenance Log'}
+                  </h4>
+
+                  {record.verificationStatus === 'Discrepancy' && (
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {record.discrepancyNote?.toLowerCase().includes('maturity') && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#ffe3e3] text-[#c53030] border border-[#ffa8a8]">
+                          Maturity Date Variance
+                        </span>
+                      )}
+                      {record.discrepancyNote?.toLowerCase().includes('amount') && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#ffe3e3] text-[#c53030] border border-[#ffa8a8]">
+                          Deposit Amount Variance
+                        </span>
+                      )}
+                      {record.discrepancyNote?.toLowerCase().includes('ref') && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#ffe3e3] text-[#c53030] border border-[#ffa8a8]">
+                          Reference Mismatch
+                        </span>
+                      )}
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#c53030] text-white">
+                        Requires Scrutiny
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <p className={`mt-1.5 text-xs leading-relaxed font-sans ${
+                  record.verificationStatus === 'Discrepancy' ? 'text-[#721c24] font-medium' : 'text-text-primary'
+                }`}>
+                  {record.discrepancyNote || 'No discrepancy notes recorded for this instrument.'}
                 </p>
-                <div className="mt-2 text-[10px] font-mono text-text-muted">
-                  Flagged by AICTE Regulation Bureau Automated Sentry Engine. All actions recorded in Immutable Audit Trail.
+
+                <div className="mt-2.5 pt-2 border-t border-[#d1d9e6]/60 flex items-center justify-between text-[10px] font-mono text-text-muted">
+                  <span>Audit Source: AICTE Regulation Bureau Automated Sentry Engine</span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('compliance')}
+                    className="text-accent-orange font-semibold hover:underline flex items-center gap-1"
+                  >
+                    <span>Run Full 8-Rule Compliance Audit &rarr;</span>
+                  </button>
                 </div>
               </div>
             </div>

@@ -358,6 +358,7 @@ export function App() {
         onCloseMobile={() => setMobileDrawerOpen(false)}
         institutionCount={institutions.length}
         fdrCount={fdrRecords.length}
+        currentAdmin={currentAdmin}
       />
 
       {/* Main Content Area */}
@@ -491,6 +492,7 @@ export function App() {
               institutions={institutions}
               onViewDetails={(rec) => setSelectedRecord(rec)}
               onWorkflowUpdated={() => loadDatabaseData(false)}
+              currentAdmin={currentAdmin}
             />
           )}
 

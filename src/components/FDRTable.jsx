@@ -11,7 +11,7 @@ import {
   RefreshCw,
   Check
 } from 'lucide-react';
-import { StatusBadge, PriorityBadge } from './StatusBadge';
+import { StatusBadge, PriorityBadge, VerificationSourceBadge } from './StatusBadge';
 import { formatINR, formatDate } from '../data/sampleFdrData';
 import { exportFdrsToCsv } from '../utils/exportUtils';
 
@@ -322,9 +322,12 @@ export function FDRTable({ records = [], onViewDetails, initialStatusFilter = "A
                     </div>
                   </td>
 
-                  {/* Verification Status */}
+                  {/* Verification Status & Provenance */}
                   <td className="py-3.5 px-4 whitespace-nowrap">
-                    <StatusBadge status={item.verificationStatus} />
+                    <div className="flex flex-col gap-1 items-start">
+                      <StatusBadge status={item.verificationStatus} />
+                      <VerificationSourceBadge status={item.verificationStatus} />
+                    </div>
                   </td>
 
                   {/* Priority */}

@@ -308,6 +308,26 @@ export function Header({
             )}
           </div>
 
+          {/* Sovereign Role Pill */}
+          {(() => {
+            const role = currentAdmin?.role || 'BUREAU_CHIEF';
+            const roleConfig = {
+              'BUREAU_CHIEF': { label: 'Bureau Chief', badgeClass: 'bg-purple-100 text-purple-700 border-purple-300' },
+              'SCRUTINY_OFFICER': { label: 'Scrutiny Officer', badgeClass: 'bg-cyan-100 text-cyan-800 border-cyan-300' },
+              'INSTITUTION_USER': { label: 'College Admin', badgeClass: 'bg-blue-100 text-blue-700 border-blue-300' },
+              'BANK_NODE': { label: 'Bank Nodal Desk', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300' }
+            }[role] || { label: 'Bureau', badgeClass: 'bg-amber-100 text-amber-800 border-amber-300' };
+
+            return (
+              <div className="hidden lg:flex items-center">
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-bold border ${roleConfig.badgeClass}`}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                  <span>{roleConfig.label}</span>
+                </span>
+              </div>
+            );
+          })()}
+
           {/* User Profile Menu */}
           <div className="relative" ref={profileRef}>
             <button
@@ -323,11 +343,11 @@ export function Header({
               </div>
               
               <div className="text-left hidden md:block">
-                <div className="text-xs font-bold text-text-primary leading-tight">
-                  {currentAdmin?.username || 'aicte_admin'}
+                <div className="text-xs font-bold text-text-primary leading-tight truncate max-w-[150px]">
+                  {currentAdmin?.displayName || currentAdmin?.username || 'aicte_admin'}
                 </div>
                 <div className="text-[10px] font-mono text-text-muted flex items-center gap-1">
-                  <span>AICTE Administrator</span>
+                  <span>{currentAdmin?.role ? currentAdmin.role.replace('_', ' ') : 'AICTE Bureau'}</span>
                   <span className="led-indicator led-green" />
                 </div>
               </div>
@@ -337,47 +357,61 @@ export function Header({
 
             {/* Profile Dropdown Panel */}
             {showProfileMenu && (
-              <div className="absolute right-0 mt-3 w-64 skeuo-panel-elevated p-4 z-50 animate-in fade-in slide-in-from-top-2">
+              <div className="absolute right-0 mt-3 w-72 skeuo-panel-elevated p-4 z-50 animate-in fade-in slide-in-from-top-2">
                 <div className="pb-3 border-b border-[#d1d9e6]">
                   <div className="flex items-center gap-2.5">
                     <div className="w-10 h-10 rounded-full bg-accent-orange/20 text-accent-orange flex items-center justify-center font-bold text-sm border border-accent-orange/40">
                       {currentAdmin?.username ? currentAdmin.username.slice(0, 2).toUpperCase() : 'AD'}
                     </div>
-                    <div>
-                      <div className="font-bold text-sm text-text-primary">
-                        {currentAdmin?.username || 'aicte_admin'}
+                    <div className="min-w-0">
+                      <div className="font-bold text-xs text-text-primary truncate">
+                        {currentAdmin?.displayName || currentAdmin?.username || 'aicte_admin'}
                       </div>
-                      <div className="text-xs text-text-muted">
-                        Regulation Bureau Master
+                      <div className="text-[11px] font-mono text-accent-orange font-semibold">
+                        Role: {currentAdmin?.role || 'BUREAU_CHIEF'}
                       </div>
+                      {currentAdmin?.institutionId && (
+                        <div className="text-[10px] text-text-muted truncate">
+                          College: {currentAdmin.institutionId}
+                        </div>
+                      )}
+                      {currentAdmin?.bankName && (
+                        <div className="text-[10px] text-text-muted truncate">
+                          Bank: {currentAdmin.bankName}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="mt-2.5 px-2 py-1 rounded skeuo-recessed text-[11px] font-mono text-text-muted">
-                    Session: {currentAdmin?.email || 'admin@aicte-india.org'}
+                  <div className="mt-2.5 px-2 py-1 rounded skeuo-recessed text-[10px] font-mono text-text-muted truncate">
+                    ID: {currentAdmin?.username} &bull; {currentAdmin?.email || 'admin@aicte-india.org'}
                   </div>
                 </div>
 
                 <div className="mt-3 space-y-1 text-xs">
-                  <button
-                    onClick={() => {
-                      setShowProfileMenu(false);
-                      onSelectNav("Settings");
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-md hover:bg-panel flex items-center gap-2 text-text-primary"
-                  >
-                    <SlidersHorizontal className="w-4 h-4 text-text-muted" />
-                    <span>Bureau Preferences</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowProfileMenu(false);
-                      onSelectNav("Audit Trail");
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-md hover:bg-panel flex items-center gap-2 text-text-primary"
-                  >
-                    <FileText className="w-4 h-4 text-text-muted" />
-                    <span>Security Audit Logs</span>
-                  </button>
+                  {(!currentAdmin?.role || currentAdmin?.role === 'BUREAU_CHIEF') && (
+                    <>
+                      <button
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          onSelectNav("Settings");
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-md hover:bg-panel flex items-center gap-2 text-text-primary"
+                      >
+                        <SlidersHorizontal className="w-4 h-4 text-text-muted" />
+                        <span>Bureau Preferences</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          onSelectNav("Audit Trail");
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-md hover:bg-panel flex items-center gap-2 text-text-primary"
+                      >
+                        <FileText className="w-4 h-4 text-text-muted" />
+                        <span>Security Audit Logs</span>
+                      </button>
+                    </>
+                  )}
                   <a
                     href="https://www.aicte-india.org"
                     target="_blank"
@@ -385,7 +419,7 @@ export function Header({
                     className="w-full text-left px-3 py-2 rounded-md hover:bg-panel flex items-center gap-2 text-text-primary"
                   >
                     <ExternalLink className="w-4 h-4 text-text-muted" />
-                    <span>AICTE Portal Home</span>
+                    <span>AICTE Official Portal</span>
                   </a>
                 </div>
 
@@ -398,7 +432,7 @@ export function Header({
                     className="w-full text-left px-3 py-2 rounded-md text-[#d63031] flex items-center gap-2 text-xs font-semibold hover:bg-[#ffebee]/80 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
-                    <span>Sign Out / Lock Terminal</span>
+                    <span>Sign Out / Switch Persona</span>
                   </button>
                 </div>
               </div>

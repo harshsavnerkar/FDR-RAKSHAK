@@ -16,9 +16,57 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 
+const ROLE_PRESETS = [
+  {
+    id: 'chief',
+    role: 'BUREAU_CHIEF',
+    title: 'AICTE Bureau Chief',
+    icon: '👑',
+    subtitle: 'Sign-off on releases & overrides',
+    username: 'aicte_admin',
+    password: 'Admin@123',
+    badge: 'Approver',
+    badgeColor: 'bg-purple-100 text-purple-700 border border-purple-300'
+  },
+  {
+    id: 'scrutiny',
+    role: 'SCRUTINY_OFFICER',
+    title: 'Scrutiny Officer',
+    icon: '🔍',
+    subtitle: 'Audit, OCR & recommend releases',
+    username: 'scrutiny_officer',
+    password: 'Scrutiny@2026!',
+    badge: 'Maker',
+    badgeColor: 'bg-cyan-100 text-cyan-800 border border-cyan-300'
+  },
+  {
+    id: 'college',
+    role: 'INSTITUTION_USER',
+    title: 'College Admin (VIT)',
+    icon: '🏛️',
+    subtitle: 'Vidyalankar Inst of Tech (Wadala)',
+    username: 'vit_mumbai',
+    password: 'College@2026!',
+    badge: 'Institutional',
+    badgeColor: 'bg-blue-100 text-blue-700 border border-blue-300'
+  },
+  {
+    id: 'bank',
+    role: 'BANK_NODE',
+    title: 'Bank Nodal Desk',
+    icon: '🏦',
+    subtitle: 'State Bank of India confirmation',
+    username: 'sbi_nodal',
+    password: 'Bank@2026!',
+    badge: 'Bank Node',
+    badgeColor: 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+  }
+];
+
 export function LoginView({ onLoginSuccess }) {
+  const [selectedRole, setSelectedRole] = useState('chief');
   const [username, setUsername] = useState('aicte_admin');
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState('Admin@123');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -149,7 +197,7 @@ export function LoginView({ onLoginSuccess }) {
       </div>
 
       {/* Center Authentication Module */}
-      <div className="w-full max-w-md my-8 animate-in fade-in duration-300">
+      <div className="w-full max-w-lg my-8 animate-in fade-in duration-300">
         
         {/* Terminal Header Plate */}
         <div className="skeuo-panel-elevated p-8 rounded-3xl border border-chassis relative overflow-hidden shadow-skeuo-modal">
@@ -168,8 +216,57 @@ export function LoginView({ onLoginSuccess }) {
               Administrative Authentication
             </h2>
             <p className="text-xs text-text-muted font-mono mt-1">
-              Restricted to authorized AICTE Regulation Bureau personnel
+              AICTE Regulation Bureau &bull; Sovereign RBAC Depository
             </p>
+          </div>
+
+          {/* Quick Role Demo Selector (4 Sovereign Personas) */}
+          <div className="mb-6 p-3 rounded-2xl skeuo-recessed border border-[#d1d9e6]/70">
+            <div className="flex items-center justify-between mb-2.5 px-0.5">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-text-primary">
+                <Shield className="w-3.5 h-3.5 text-accent-orange" />
+                <span>Select Sovereign RBAC Persona:</span>
+              </div>
+              <span className="text-[10px] font-mono text-accent-orange font-semibold">1-Click Auto-Fill</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {ROLE_PRESETS.map((preset) => {
+                const isSelected = selectedRole === preset.id;
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedRole(preset.id);
+                      setUsername(preset.username);
+                      setPassword(preset.password);
+                      setErrorMessage('');
+                    }}
+                    className={`p-2 rounded-xl text-left transition-all text-xs ${
+                      isSelected
+                        ? 'bg-white shadow-sm border border-accent-orange text-text-primary ring-1 ring-accent-orange/40'
+                        : 'bg-white/40 border border-[#d1d9e6] hover:bg-white/70 text-text-muted'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold flex items-center gap-1 text-[11px] truncate">
+                        <span>{preset.icon}</span>
+                        <span className={isSelected ? 'text-text-primary' : 'text-text-primary/90'}>
+                          {preset.title}
+                        </span>
+                      </span>
+                      <span className={`text-[8.5px] font-mono font-bold px-1 py-0.2 rounded ${preset.badgeColor}`}>
+                        {preset.badge}
+                      </span>
+                    </div>
+                    <p className="text-[9.5px] leading-tight text-text-muted truncate">
+                      {preset.subtitle}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Error Banner */}

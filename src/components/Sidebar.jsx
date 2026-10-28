@@ -25,19 +25,31 @@ export function Sidebar({
   mobileOpen,
   onCloseMobile,
   institutionCount = 10,
-  fdrCount = 10
+  fdrCount = 10,
+  currentAdmin
 }) {
-  const navItems = [
-    { id: "Overview", label: "Overview", icon: LayoutDashboard, badge: null },
-    { id: "Institutions", label: "Institutions", icon: Building2, badge: String(institutionCount) },
-    { id: "FDR Repository", label: "FDR Repository", icon: FolderArchive, badge: String(fdrCount) },
-    { id: "AI Verification", label: "AI Verification", icon: ScanLine, badge: "AI" },
-    { id: "Renewals & Maturity", label: "Renewals & Maturity", icon: CalendarClock, badge: null },
-    { id: "Release Requests", label: "Release Requests", icon: FileCheck2, badge: null },
-    { id: "Reports & Analytics", label: "Reports & Analytics", icon: BarChart3, badge: null },
-    { id: "Audit Trail", label: "Audit Trail", icon: History, badge: null },
-    { id: "Settings", label: "Settings", icon: Settings, badge: null },
+  const role = currentAdmin?.role || 'BUREAU_CHIEF';
+
+  const allNavItems = [
+    { id: "Overview", label: "Overview", icon: LayoutDashboard, badge: null, roles: ['BUREAU_CHIEF', 'SCRUTINY_OFFICER', 'INSTITUTION_USER', 'BANK_NODE'] },
+    { id: "Institutions", label: "Institutions", icon: Building2, badge: String(institutionCount), roles: ['BUREAU_CHIEF', 'SCRUTINY_OFFICER'] },
+    { id: "FDR Repository", label: role === 'INSTITUTION_USER' ? "My Deposited FDRs" : (role === 'BANK_NODE' ? "Bank FDR Ledger" : "FDR Repository"), icon: FolderArchive, badge: String(fdrCount), roles: ['BUREAU_CHIEF', 'SCRUTINY_OFFICER', 'INSTITUTION_USER', 'BANK_NODE'] },
+    { id: "AI Verification", label: role === 'INSTITUTION_USER' ? "Submit FDR / OCR" : "AI Verification", icon: ScanLine, badge: "AI", roles: ['BUREAU_CHIEF', 'SCRUTINY_OFFICER', 'INSTITUTION_USER', 'BANK_NODE'] },
+    { id: "Renewals & Maturity", label: "Renewals & Maturity", icon: CalendarClock, badge: null, roles: ['BUREAU_CHIEF', 'SCRUTINY_OFFICER', 'INSTITUTION_USER'] },
+    { id: "Release Requests", label: role === 'SCRUTINY_OFFICER' ? "Release Scrutiny" : (role === 'BUREAU_CHIEF' ? "Release Approvals" : "Release Requests"), icon: FileCheck2, badge: role === 'SCRUTINY_OFFICER' ? "Maker" : (role === 'BUREAU_CHIEF' ? "Approver" : null), roles: ['BUREAU_CHIEF', 'SCRUTINY_OFFICER', 'INSTITUTION_USER', 'BANK_NODE'] },
+    { id: "Reports & Analytics", label: "Reports & Analytics", icon: BarChart3, badge: null, roles: ['BUREAU_CHIEF', 'SCRUTINY_OFFICER'] },
+    { id: "Audit Trail", label: "Audit Trail", icon: History, badge: null, roles: ['BUREAU_CHIEF'] },
+    { id: "Settings", label: "Settings", icon: Settings, badge: null, roles: ['BUREAU_CHIEF'] },
   ];
+
+  const navItems = allNavItems.filter(item => item.roles.includes(role));
+
+  const roleBadgeLabel = {
+    'BUREAU_CHIEF': 'BUREAU CHIEF',
+    'SCRUTINY_OFFICER': 'SCRUTINY',
+    'INSTITUTION_USER': 'COLLEGE',
+    'BANK_NODE': 'BANK NODE'
+  }[role] || 'BUREAU';
 
   const handleNavClick = (id) => {
     onSelectNav(id);
@@ -71,7 +83,7 @@ export function Sidebar({
                     FDR Rakshak
                   </span>
                   <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-accent-orange/20 text-accent-orange border border-accent-orange/40">
-                    BUREAU
+                    {roleBadgeLabel}
                   </span>
                 </div>
                 <p className="text-[10px] font-mono text-text-muted truncate">

@@ -26,8 +26,15 @@ export function ReleaseRequestsView({
   fdrRecords = [],
   institutions = [],
   onViewDetails,
-  onWorkflowUpdated
+  onWorkflowUpdated,
+  currentAdmin
 }) {
+  const role = currentAdmin?.role || 'BUREAU_CHIEF';
+  const isScrutinyOfficer = role === 'SCRUTINY_OFFICER';
+  const isBureauChief = role === 'BUREAU_CHIEF';
+  const isInstitutionalUser = role === 'INSTITUTION_USER';
+  const isBankNode = role === 'BANK_NODE';
+
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -369,31 +376,75 @@ export function ReleaseRequestsView({
                       </button>
                     )}
 
-                    <button
-                      onClick={() => {
-                        setDecisionItem(item);
-                        setDecisionType('REJECTED');
-                        setDecisionNotes('');
-                        setDecisionError(null);
-                      }}
-                      className="skeuo-btn px-3 py-1.5 text-xs font-mono rounded-lg flex items-center gap-1.5 text-[#ff4757] hover:bg-[#fff0f2]"
-                    >
-                      <FileX className="w-3.5 h-3.5" />
-                      <span>Reject</span>
-                    </button>
+                    {/* Maker (Scrutiny Officer) Actions */}
+                    {isScrutinyOfficer && (
+                      <>
+                        <button
+                          onClick={() => {
+                            setDecisionItem(item);
+                            setDecisionType('REJECTED');
+                            setDecisionNotes('');
+                            setDecisionError(null);
+                          }}
+                          className="skeuo-btn px-3 py-1.5 text-xs font-mono rounded-lg flex items-center gap-1.5 text-[#ff4757] hover:bg-[#fff0f2]"
+                        >
+                          <FileX className="w-3.5 h-3.5" />
+                          <span>Flag Discrepancy</span>
+                        </button>
 
-                    <button
-                      onClick={() => {
-                        setDecisionItem(item);
-                        setDecisionType('APPROVED');
-                        setDecisionNotes('');
-                        setDecisionError(null);
-                      }}
-                      className="skeuo-btn-accent px-4 py-1.5 text-xs font-mono rounded-lg shadow-sm flex items-center gap-1.5"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Authorize Release</span>
-                    </button>
+                        <button
+                          onClick={() => {
+                            setDecisionItem(item);
+                            setDecisionType('APPROVED');
+                            setDecisionNotes('');
+                            setDecisionError(null);
+                          }}
+                          className="skeuo-btn px-4 py-1.5 text-xs font-mono rounded-lg shadow-sm flex items-center gap-1.5 bg-cyan-50 border border-cyan-400 text-cyan-800 hover:bg-cyan-100 font-bold"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 text-cyan-700" />
+                          <span>Recommend Clearance (Maker)</span>
+                        </button>
+                      </>
+                    )}
+
+                    {/* Approving Authority (Bureau Chief) Actions */}
+                    {isBureauChief && (
+                      <>
+                        <button
+                          onClick={() => {
+                            setDecisionItem(item);
+                            setDecisionType('REJECTED');
+                            setDecisionNotes('');
+                            setDecisionError(null);
+                          }}
+                          className="skeuo-btn px-3 py-1.5 text-xs font-mono rounded-lg flex items-center gap-1.5 text-[#ff4757] hover:bg-[#fff0f2]"
+                        >
+                          <FileX className="w-3.5 h-3.5" />
+                          <span>Reject</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setDecisionItem(item);
+                            setDecisionType('APPROVED');
+                            setDecisionNotes('');
+                            setDecisionError(null);
+                          }}
+                          className="skeuo-btn-accent px-4 py-1.5 text-xs font-mono rounded-lg shadow-sm flex items-center gap-1.5"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Authorize Release (Checker)</span>
+                        </button>
+                      </>
+                    )}
+
+                    {/* External Stakeholders (College / Bank) View */}
+                    {(isInstitutionalUser || isBankNode) && (
+                      <span className="px-3 py-1 rounded-lg text-xs font-mono bg-chassis border border-[#d1d9e6] text-text-muted flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-accent-orange" />
+                        <span>Awaiting AICTE Executive Committee Clearance</span>
+                      </span>
+                    )}
                   </div>
                 </div>
               );
