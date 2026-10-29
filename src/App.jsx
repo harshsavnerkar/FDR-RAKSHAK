@@ -466,6 +466,7 @@ export function App() {
             <DocumentUploadOcr
               institutions={institutions}
               fdrRecords={fdrRecords}
+              currentAdmin={currentAdmin}
               onFdrCreated={(newRecord) => {
                 setFdrRecords(prev => [newRecord, ...prev]);
                 showToast(`FDR "${newRecord.reference}" vaulted successfully from OCR intake.`);

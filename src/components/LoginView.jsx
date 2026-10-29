@@ -222,12 +222,9 @@ export function LoginView({ onLoginSuccess }) {
 
           {/* Quick Role Demo Selector (4 Sovereign Personas) */}
           <div className="mb-6 p-3 rounded-2xl skeuo-recessed border border-[#d1d9e6]/70">
-            <div className="flex items-center justify-between mb-2.5 px-0.5">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-text-primary">
-                <Shield className="w-3.5 h-3.5 text-accent-orange" />
-                <span>Select Sovereign RBAC Persona:</span>
-              </div>
-              <span className="text-[10px] font-mono text-accent-orange font-semibold">1-Click Auto-Fill</span>
+            <div className="flex items-center gap-1.5 mb-2.5 px-0.5 text-xs font-bold text-text-primary">
+              <Shield className="w-3.5 h-3.5 text-accent-orange" />
+              <span>Select Sovereign RBAC Persona:</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2">

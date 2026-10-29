@@ -229,19 +229,19 @@ def parse_fdr_fields(raw_text: str) -> dict[str, Any]:
 
     # 4. Branch Name extraction
     branch_match = re.search(
-        r"(?:branch\s*(?:name|office)?|at\s*branch)\s*[:#-]?\s*([A-Za-z0-9\s,.-]+?)(?:\n|ifsc|pin|tel|phone|,|\.|$)",
+        r"(?:branch\s*(?:name|office)?|at\s*branch)\s*[:#-]?\s*(?:\n\s*)?([A-Za-z0-9\s,().\-]+?)(?:\n\s*(?:ifsc|pin|tel|phone|account)|ifsc|pin|tel|phone|,|\.|$)",
         raw_text,
         re.IGNORECASE
     )
     if branch_match:
-        b_val = branch_match.group(1).strip()
-        if 2 <= len(b_val) <= 60:
+        b_val = branch_match.group(1).replace('\n', ' ').strip()
+        if 2 <= len(b_val) <= 60 and not b_val.lower().startswith('name:'):
             fields["branch"] = b_val
-            field_confidence["branch"] = 80.0
+            field_confidence["branch"] = 88.0
 
     if not fields["branch"]:
         for line in lines:
-            if "BRANCH" in line.upper() and not any(k in line.upper() for k in ["CODE", "MANAGER"]):
+            if "BRANCH" in line.upper() and not any(k in line.upper() for k in ["CODE", "MANAGER", "NAME"]):
                 clean_br = re.sub(r"^(?:State Bank of India|HDFC Bank|ICICI Bank|PNB|Bank\s+of\s+\w+)\s*", "", line, flags=re.IGNORECASE).strip()
                 clean_br = clean_br.split(" - ")[0].split(" • ")[0].strip()
                 if 2 <= len(clean_br) <= 60:
@@ -261,17 +261,17 @@ def parse_fdr_fields(raw_text: str) -> dict[str, Any]:
 
     # 6. Account Holder / Institution Name
     holder_match = re.search(
-        r"(?:in\s*(?:the)?\s*name\s*of|favoring|in\s*favour\s*of|account\s*name|holder(?:\s*name)?|name\s*of\s*(?:the\s*)?depositor|borrower\s*name)\s*[:#-]?\s*([^\n\r]+)",
+        r"(?:beneficiary\s*(?:account\s*)?name|in\s*(?:the)?\s*name\s*of|favoring|in\s*favour\s*of|account\s*name|holder(?:\s*name)?|name\s*of\s*(?:the\s*)?depositor|borrower\s*name)\s*[:#-]?\s*(?:\n\s*)?([A-Za-z0-9\s,().&\-]+?)(?:\n\s*(?:institution|branch|code|ifsc|account\s*no)|$)",
         raw_text,
         re.IGNORECASE
     )
     if holder_match:
-        h_val = holder_match.group(1).strip()
+        h_val = holder_match.group(1).replace('\n', ' ').strip()
         # Clean trailing punctuation
         h_val = re.sub(r"[;,.]+$", "", h_val)
         if len(h_val) >= 3:
             fields["accountHolder"] = h_val
-            field_confidence["accountHolder"] = 85.0
+            field_confidence["accountHolder"] = 90.0
     else:
         # Check for educational keyword lines
         for line in lines:

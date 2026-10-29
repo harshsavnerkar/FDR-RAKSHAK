@@ -404,27 +404,45 @@ def build_pdf_3_bank_vit_confirmation(filepath):
         ],
         [
             Paragraph("<b>Target Deposit Reference:</b>", body_style),
-            Paragraph("FDR-AICTE-2026-8831", body_style),
-            Paragraph("<b>Account Number:</b>", body_style),
-            Paragraph("SBI-A/C-391084728831", body_style)
+            Paragraph("<b>FDR-AICTE-2026-8831</b>", body_style),
+            Paragraph("<b>Certificate No:</b>", body_style),
+            Paragraph("CERT-SBI-2026-8831", body_style)
         ],
         [
-            Paragraph("<b>Beneficiary Institution:</b>", body_style),
+            Paragraph("<b>Beneficiary Account Name:</b>", body_style),
             Paragraph("<b>Vidyalankar Institute of Technology</b>", body_style),
             Paragraph("<b>Institution Code:</b>", body_style),
             Paragraph("<b>INST-VIT-MH-077</b>", body_style)
         ],
         [
-            Paragraph("<b>Confirmed Principal Balance:</b>", body_style),
-            Paragraph("<b>INR 50,00,000.00 (Fifty Lakhs Only)</b>", body_style),
-            Paragraph("<b>CBS Status:</b>", body_style),
-            Paragraph("<font color='#0f766e'><b>ACTIVE & MARKED IN CBS</b></font>", body_style)
+            Paragraph("<b>Issuing Bank Name:</b>", body_style),
+            Paragraph("<b>State Bank of India</b>", body_style),
+            Paragraph("<b>Branch Name:</b>", body_style),
+            Paragraph("Wadala East Branch (01823)", body_style)
         ],
         [
-            Paragraph("<b>Confirmed Maturity Date:</b>", body_style),
-            Paragraph("01-Apr-2031", body_style),
-            Paragraph("<b>Interest Accrued:</b>", body_style),
-            Paragraph("INR 1,84,200.00 (Reinvested)", body_style)
+            Paragraph("<b>IFSC Code:</b>", body_style),
+            Paragraph("<b>SBIN0001823</b>", body_style),
+            Paragraph("<b>Account Number:</b>", body_style),
+            Paragraph("SBI-A/C-391084728831", body_style)
+        ],
+        [
+            Paragraph("<b>Confirmed Deposit Amount:</b>", body_style),
+            Paragraph("<b>INR 50,00,000.00 (Fifty Lakhs Only)</b>", body_style),
+            Paragraph("<b>Maturity Amount:</b>", body_style),
+            Paragraph("INR 71,56,840.00", body_style)
+        ],
+        [
+            Paragraph("<b>Date of Issue:</b>", body_style),
+            Paragraph("01-Apr-2026", body_style),
+            Paragraph("<b>Date of Maturity:</b>", body_style),
+            Paragraph("<b>01-Apr-2031</b> (5-Year Lock-in)", body_style)
+        ],
+        [
+            Paragraph("<b>Interest Rate:</b>", body_style),
+            Paragraph("7.25% p.a.", body_style),
+            Paragraph("<b>CBS Lien Status:</b>", body_style),
+            Paragraph("<font color='#0f766e'><b>Lien Marked in favour of AICTE</b></font>", body_style)
         ]
     ]
 
@@ -432,11 +450,11 @@ def build_pdf_3_bank_vit_confirmation(filepath):
     t.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#f0fdfa')),
         ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#99f6e4')),
-        ('PADDING', (0,0), (-1,-1), 5),
+        ('PADDING', (0,0), (-1,-1), 4),
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
     ]))
     story.append(t)
-    story.append(Spacer(1, 14))
+    story.append(Spacer(1, 10))
 
     cbs_box_data = [
         [

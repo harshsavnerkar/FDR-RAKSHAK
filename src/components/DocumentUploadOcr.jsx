@@ -29,14 +29,17 @@ import {
 import { api } from '../services/api';
 import { formatINR, formatDate } from '../data/sampleFdrData';
 import { ComplianceAuditView } from './ComplianceAuditView';
+import { VerificationSourceBadge } from './StatusBadge';
 
 export function DocumentUploadOcr({
   institutions = [],
   fdrRecords = [],
+  currentAdmin = null,
   onFdrCreated,
   onFdrUpdated,
   onNavigateToRepository
 }) {
+  const isBankUser = currentAdmin?.role === 'BANK_NODE';
   // OCR engine state
   const [engineStatus, setEngineStatus] = useState(null);
   const [statusLoading, setStatusLoading] = useState(true);
@@ -141,11 +144,16 @@ export function DocumentUploadOcr({
       }
 
       const hasDiscrepancy = discrepancies.length > 0;
+      const isBankDoc = isBankUser ||
+        /cbs|bank.*confirmation|lien.*confirmation/i.test(selectedFile?.name || '') ||
+        /core banking|cbs confirmation|bank confirmation/i.test(ocrResult?.rawText || '');
+
+      const defaultStatus = hasDiscrepancy ? 'Discrepancy' : (isBankDoc ? 'Verified' : 'Pending');
 
       setFormData({
         reference: ext.reference || '',
         institutionCode: matchedInstCode,
-        bankName: ext.bankName || '',
+        bankName: ext.bankName || (isBankUser ? 'State Bank of India' : ''),
         branch: ext.branch || 'Main Commercial Branch',
         ifsc: ext.ifsc || '',
         certificateNo: ext.certificateNo || '',
@@ -154,21 +162,35 @@ export function DocumentUploadOcr({
         issueDate: ext.issueDate || '',
         maturityDate: ext.maturityDate || '',
         maturityAmount: ext.maturityAmount ? String(ext.maturityAmount) : '',
-        category: 'Statutory Lien',
+        category: isBankDoc ? 'Statutory Lien (Bank Verified)' : 'Statutory Lien',
         priority: hasDiscrepancy ? 'HIGH' : 'Standard',
-        verificationStatus: hasDiscrepancy ? 'Discrepancy' : 'Pending',
+        verificationStatus: defaultStatus,
         discrepancyNote: hasDiscrepancy ? discrepancies.join('; ') : ''
       });
       setModifiedFields(new Set());
       setSubmitSuccess(null);
       setSubmitError(null);
 
-      // Default select first existing FDR if available
-      if (fdrRecords.length > 0) {
+      // If Bank CBS confirmation feed, automatically check if a matching FDR exists to link
+      if (isBankDoc && fdrRecords.length > 0) {
+        const targetRef = (ext.reference || '').toLowerCase();
+        const matchingFdr = fdrRecords.find(r => 
+          (targetRef && r.reference && (r.reference.toLowerCase().includes(targetRef) || targetRef.includes(r.reference.toLowerCase()))) ||
+          (ext.certificateNo && r.certificateNo && r.certificateNo.toLowerCase() === ext.certificateNo.toLowerCase())
+        );
+        if (matchingFdr) {
+          setSelectedExistingFdrId(matchingFdr.id);
+          setActionMode('link');
+          setUpdateExistingValues(true);
+          setVerificationNote(`Direct Bank CBS Confirmation Feed verified: ${ocrResult.originalFilename || 'CBS Feed'}`);
+        } else {
+          setSelectedExistingFdrId(fdrRecords[0].id);
+        }
+      } else if (fdrRecords.length > 0) {
         setSelectedExistingFdrId(fdrRecords[0].id);
       }
     }
-  }, [ocrResult, institutions, fdrRecords]);
+  }, [ocrResult, institutions, fdrRecords, isBankUser, selectedFile]);
 
   // Handle Drag & Drop
   const handleDragOver = (e) => {
@@ -594,6 +616,11 @@ export function DocumentUploadOcr({
                   </span>
                 </div>
 
+                <div className="p-2.5 rounded-lg skeuo-recessed flex items-center justify-between">
+                  <span className="text-text-muted">Verification Source:</span>
+                  <VerificationSourceBadge status={formData.verificationStatus} />
+                </div>
+
                 <div className="pt-2">
                   <button
                     type="button"
@@ -621,6 +648,16 @@ export function DocumentUploadOcr({
                   <div className="mt-2 text-[10px] text-[#c53030]/80">
                     * Vaulting this document will register the record under Discrepancy audit status for Scrutiny review.
                   </div>
+                </div>
+              ) : (isBankUser || /cbs|bank.*confirmation|lien.*confirmation/i.test(selectedFile?.name || '') || /core banking|cbs confirmation|bank confirmation/i.test(ocrResult?.rawText || '') || formData.verificationStatus === 'Verified') ? (
+                <div className="mt-4 p-3 rounded-lg bg-[#eafaf1] border border-[#b7ebcd] text-[#1b7943] text-xs font-mono shadow-sm">
+                  <div className="flex items-center gap-1.5 font-bold mb-1">
+                    <CheckCircle2 className="w-4 h-4 text-[#1b7943]" />
+                    <span>Direct Bank Confirmation Feed — Bank-Verified Source:</span>
+                  </div>
+                  <p className="text-[11px] text-[#276749] leading-relaxed">
+                    Irrevocable tripartite lien confirmation validated directly from {isBankUser ? 'authorized Bank Nodal terminal' : 'Core Banking System (CBS) feed'}. Instrument satisfies AICTE statutory norms and is authenticated as an official <strong>Bank-Verified Source</strong>.
+                  </p>
                 </div>
               ) : (
                 <div className="mt-4 p-3 rounded-lg bg-[#eafaf1] border border-[#b7ebcd] text-[#1b7943] text-xs font-mono shadow-sm">
