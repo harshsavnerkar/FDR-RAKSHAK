@@ -264,6 +264,8 @@ export const api = {
     if (params.limit) query.append('limit', params.limit);
     if (params.offset) query.append('offset', params.offset);
     if (params.eventType) query.append('event_type', params.eventType);
+    if (params.status) query.append('status', params.status);
+    if (params.search) query.append('search', params.search);
     const qs = query.toString();
     return request(`/audit-logs${qs ? `?${qs}` : ''}`);
   },

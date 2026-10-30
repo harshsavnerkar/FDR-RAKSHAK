@@ -38,7 +38,7 @@ export function Sidebar({
     { id: "Renewals & Maturity", label: "Renewals & Maturity", icon: CalendarClock, badge: null, roles: ['BUREAU_CHIEF', 'SCRUTINY_OFFICER', 'INSTITUTION_USER'] },
     { id: "Release Requests", label: role === 'SCRUTINY_OFFICER' ? "Release Scrutiny" : (role === 'BUREAU_CHIEF' ? "Release Approvals" : "Release Requests"), icon: FileCheck2, badge: role === 'SCRUTINY_OFFICER' ? "Maker" : (role === 'BUREAU_CHIEF' ? "Approver" : null), roles: ['BUREAU_CHIEF', 'SCRUTINY_OFFICER', 'INSTITUTION_USER', 'BANK_NODE'] },
     { id: "Reports & Analytics", label: "Reports & Analytics", icon: BarChart3, badge: null, roles: ['BUREAU_CHIEF', 'SCRUTINY_OFFICER'] },
-    { id: "Audit Trail", label: "Audit Trail", icon: History, badge: null, roles: ['BUREAU_CHIEF'] },
+    { id: "Audit Trail", label: "Audit Trail", icon: History, badge: null, roles: ['BUREAU_CHIEF', 'SCRUTINY_OFFICER'] },
     { id: "Settings", label: "Settings", icon: Settings, badge: null, roles: ['BUREAU_CHIEF'] },
   ];
 
